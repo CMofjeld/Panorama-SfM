@@ -14,6 +14,8 @@
 #include <chrono>
 #include <ctime>   
 
+#include "FundamentalSolvers.h"
+
 using namespace cv;
 using namespace std;
 
@@ -41,29 +43,32 @@ bool LoadVideo(String fileName, VideoCapture &cap)
 /// <returns></returns>
 int main()
 {
-    VideoCapture loadedVideo;
-    int exitValue = -1;
-    if (LoadVideo("short_test_vid.mp4", loadedVideo)) 
-    {
-        double fps = loadedVideo.get(CAP_PROP_FPS);
-        String windowName = "Test Video";
+    //VideoCapture loadedVideo;
+    //int exitValue = -1;
+    //if (LoadVideo("short_test_vid.mp4", loadedVideo)) 
+    //{
+    //    double fps = loadedVideo.get(CAP_PROP_FPS);
+    //    String windowName = "Test Video";
 
-        namedWindow("Test Video", WINDOW_AUTOSIZE);
-        while (loadedVideo.isOpened())
-        {
-            Mat frame;
-            // Check to see if we've reached the end or if the user has hit the escape key
-            if (!loadedVideo.read(frame) || waitKey(30) == 27)
-            {
-                break;
-            }
-            imshow(windowName, frame);
-        }
-        loadedVideo.release();
-        exitValue = 0;
-    }
+    //    namedWindow("Test Video", WINDOW_AUTOSIZE);
+    //    while (loadedVideo.isOpened())
+    //    {
+    //        Mat frame;
+    //        // Check to see if we've reached the end or if the user has hit the escape key
+    //        if (!loadedVideo.read(frame) || waitKey(30) == 27)
+    //        {
+    //            break;
+    //        }
+    //        imshow(windowName, frame);
+    //    }
+    //    loadedVideo.release();
+    //    exitValue = 0;
+    //}
 
-    printf("Program finished");
-    waitKey(0);
-    return exitValue;
+    //printf("Program finished");
+    //waitKey(0);
+
+    testFourPoint();
+
+    //return exitValue;
 }
