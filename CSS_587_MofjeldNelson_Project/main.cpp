@@ -12,7 +12,8 @@
 #include <opencv2/highgui.hpp>
 #include <iostream>
 #include <chrono>
-#include <ctime>   
+#include <ctime>  
+#include <glog/logging.h>
 
 using namespace cv;
 using namespace std;
@@ -39,8 +40,12 @@ bool LoadVideo(String fileName, VideoCapture &cap)
 /// TODO: Add further description when we're further along in the project
 /// </summary>
 /// <returns></returns>
-int main()
+int main(int argc, char* argv[])
 {
+    // Simple test to ensure we have glog configured correctly
+    google::InitGoogleLogging(argv[0]);
+    LOG(INFO) << "GLOG configured correctly";
+
     VideoCapture loadedVideo;
     int exitValue = -1;
     if (LoadVideo("short_test_vid.mp4", loadedVideo)) 
@@ -48,7 +53,7 @@ int main()
         double fps = loadedVideo.get(CAP_PROP_FPS);
         String windowName = "Test Video";
 
-        namedWindow("Test Video", WINDOW_AUTOSIZE);
+        namedWindow(windowName, WINDOW_AUTOSIZE);
         while (loadedVideo.isOpened())
         {
             Mat frame;
