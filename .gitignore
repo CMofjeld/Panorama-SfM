@@ -386,3 +386,7 @@ FodyWeavers.xsd
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+CSS_587_MofjeldNelson_Project/bin
+CSS_587_MofjeldNelson_Project/includes
+CSS_587_MofjeldNelson_Project/libs
