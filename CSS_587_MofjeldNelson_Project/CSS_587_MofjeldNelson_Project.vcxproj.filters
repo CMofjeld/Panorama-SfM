@@ -18,12 +18,12 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FundamentalSolvers.cpp">
+    <ClCompile Include="DependencyChecker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FundamentalSolvers.h">
+    <ClInclude Include="DependencyChecker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

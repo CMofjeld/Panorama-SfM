@@ -1,7 +1,7 @@
 /*
 * CSS 587 - Advance Computer Vision
 * Spring 2021
-* Carl Moffjeld, Drew Nelson
+* Carl Mofjeld, Drew Nelson
 * 
 * Description:
 * TODO: Add more description for the file when we're further along in the project
@@ -11,10 +11,8 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <iostream>
-#include <chrono>
-#include <ctime>   
 
-#include "FundamentalSolvers.h"
+#include "DependencyChecker.h"
 
 using namespace cv;
 using namespace std;
@@ -29,7 +27,7 @@ bool LoadVideo(String fileName, VideoCapture &cap)
 {
     cap = VideoCapture("Input\\" + fileName);
     bool videoLoaded = cap.isOpened();
-    if (cap.isOpened())
+    if (!videoLoaded)
     {
         printf("Failed to read video at %s", fileName.c_str());
     }
@@ -41,34 +39,40 @@ bool LoadVideo(String fileName, VideoCapture &cap)
 /// TODO: Add further description when we're further along in the project
 /// </summary>
 /// <returns></returns>
-int main()
+int main(int argc, char* argv[])
 {
-    //VideoCapture loadedVideo;
-    //int exitValue = -1;
-    //if (LoadVideo("short_test_vid.mp4", loadedVideo)) 
-    //{
-    //    double fps = loadedVideo.get(CAP_PROP_FPS);
-    //    String windowName = "Test Video";
+    if (!testDependencies())
+    {
+        return -1;
+    }
 
-    //    namedWindow("Test Video", WINDOW_AUTOSIZE);
-    //    while (loadedVideo.isOpened())
-    //    {
-    //        Mat frame;
-    //        // Check to see if we've reached the end or if the user has hit the escape key
-    //        if (!loadedVideo.read(frame) || waitKey(30) == 27)
-    //        {
-    //            break;
-    //        }
-    //        imshow(windowName, frame);
-    //    }
-    //    loadedVideo.release();
-    //    exitValue = 0;
-    //}
+    int exitValue = 0;
+    VideoCapture loadedVideo;
+    
+    if (LoadVideo("short_test_vid.mp4", loadedVideo)) 
+    {
+        String windowName = "Test Video";
 
-    //printf("Program finished");
-    //waitKey(0);
+        namedWindow(windowName, WINDOW_AUTOSIZE);
+        while (loadedVideo.isOpened())
+        {
+            Mat frame;
+            // Check to see if we've reached the end or if the user has hit the escape key
+            if (!loadedVideo.read(frame) || waitKey(30) == 27)
+            {
+                break;
+            }
+            imshow(windowName, frame);
+        }
+        destroyWindow(windowName);
+        loadedVideo.release();
+    }
+    else
+    {
+        exitValue = -1;
+    }
 
-    testFourPoint();
-
-    //return exitValue;
+    printf("Program finished");
+    waitKey(0);
+    return exitValue;
 }
