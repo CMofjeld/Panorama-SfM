@@ -13,6 +13,7 @@
 #include <iostream>
 
 #include "DependencyChecker.h"
+#include "FundamentalSolvers.h"
 
 using namespace cv;
 using namespace std;
@@ -71,6 +72,8 @@ int main(int argc, char* argv[])
     {
         exitValue = -1;
     }
+
+    testFourPoint();
 
     printf("Program finished");
     waitKey(0);

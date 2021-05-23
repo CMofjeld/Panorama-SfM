@@ -2,25 +2,83 @@
 #include <opencv2/calib3d.hpp>
 //#include <opencv2/sfm/fundamental.hpp> TODO: install SFM module and uncomment this include
 #include <iostream>
+#include <limits>
 
 /// <summary>
 /// Estimate the fundamental matrix between two images using four point correspondences.
 /// </summary>
 /// <param name="points1">List of four points in the first image</param>
 /// <param name="points2">List of four points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
 /// <returns>Estimated fundamental matrix</returns>
-Mat fourPointMethod(const vector<Point2f>& points1, const vector<Point2f>& points2) {
+void fourPointMethod(const vector<Point2f>& points1, const vector<Point2f>& points2, vector<Mat>& solutions) {
+   // TODO: input validation
+   
    // Set up system of linear equations based on the epipolar constraint
+   size_t num_correspondences = points1.size();
+   Mat A(num_correspondences, 6, CV_32FC1);
+   for (size_t i = 0; i < num_correspondences; i++)
+   {
+      A.at<float>(i, 0) = points1[i].x * points2[i].x - points1[i].y * points2[i].y;
+      A.at<float>(i, 1) = points1[i].x * points2[i].y + points1[i].y * points2[i].x;
+      A.at<float>(i, 2) = points2[i].x;
+      A.at<float>(i, 3) = points2[i].y;
+      A.at<float>(i, 4) = points1[i].x;
+      A.at<float>(i, 5) = points1[i].y;
+   }
 
-   // Find a basis for the nullspace (and the vectorized fundamental matrix)
+   // Find a basis for the nullspace (and the vectorized fundamental matrix, Fv)
+   SVD svd(A, SVD::FULL_UV);  // FULL_UV flag needed to get nullspace basis vectors
+
+   // Fv is a combination of the nullspace vectors according to the equation:
+   // Fv = x*F1 + (1-x)*F2
+   // where x is scalar determining the relative proportion of each nullspace vector.
+   Vec6f f1 = svd.vt.row(4); // first nullspace basis vector
+   Vec6f f2 = svd.vt.row(5); // second nullspace basis vector
+
+   vector<Mat> Fmats(2);   // fundamental matrices generated from the basis vectors
+   Fmats[0] = (Mat_<float>(3, 3) << f1(0), f1(1),  f1(4),
+               f1(1), -f1(0), f1(5),
+               f1(2), f1(3),  0);
+   Fmats[1] = (Mat_<float>(3, 3) << f2(0), f2(1),  f2(4),
+               f2(1), -f2(0), f2(5),
+               f2(2), f2(3),  0);
 
    // The fundamental matrix must have a zero determinant.
-   // Set up a cubic equation based on this to find the relative proportions
-   // of the two basis vectors that make up F.
+   // Set up a cubic equation based on this to find x.
+   // Reference for this code:
+   // https://imkaywu.github.io/blog/2017/06/fundamental-matrix/
+   float D[2][2][2]; // intermediate determinants
+   for (size_t i1 = 0; i1 < 2; i1++)
+   {
+      for (size_t i2 = 0; i2 < 2; i2++)
+      {
+         for (size_t i3 = 0; i3 < 2; i3++)
+         {
+            Mat_<float> Dtmp(3,3);
+            Fmats[i1].col(0).copyTo(Dtmp.col(0));
+            Fmats[i2].col(1).copyTo(Dtmp.col(1));
+            Fmats[i3].col(2).copyTo(Dtmp.col(2));
+            D[i1][i2][i3] = determinant(Dtmp);
+         }
+      }
+   }
+   Vec4f coefficients(4);  // coefficients of the cubic equation
+   coefficients(0) = -D[1][0][0] + D[0][1][1] + D[0][0][0] + D[1][1][0] + D[1][0][1] - D[0][1][0] - D[0][0][1] - D[1][1][1];
+   coefficients(1) = D[0][0][1] - 2 * D[0][1][1] - 2 * D[1][0][1] + D[1][0][0] - 2 * D[1][1][0] + D[0][1][0] + 3 * D[1][1][1];
+   coefficients(2) = D[1][1][0] + D[0][1][1] + D[1][0][1] - 3 * D[1][1][1];
+   coefficients(3) = D[1][1][1];
+   Vec3f roots;    // solutions to the cubic equation
+   int numRoots = solveCubic(coefficients, roots);
 
-   // Reconstruct F based on the results above
-   Mat F = Mat::zeros(Size(3, 3), CV_32FC1);
-   return F;
+   // The cubic equation may have up to 3 possible solutions for x.
+   // Reconstruct a possible fundamental matrix solution for each x
+   // and store it in the output vector.
+   for (size_t i = 0; i < numRoots; i++)
+   {
+      Mat solution = Fmats[0] * roots[i] + Fmats[1] * (1.f - roots[i]);
+      solutions.push_back(solution.t() / norm(solution));
+   }
 }
 
 /// <summary>
@@ -80,18 +138,30 @@ void testFourPoint() {
    for (auto& point : projectedPoints2) cout << point << endl;
    cout << endl;
 
-   // Get four point estimation
-   Mat fourPointEstimate = fourPointMethod(projectedPoints1, projectedPoints2);
+   // Get four point estimations
+   vector<Mat> solutions;
+   fourPointMethod(projectedPoints1, projectedPoints2, solutions);
 
-   // Compare to ground truth
-   Mat F;
+   // Calculate ground truth fundamental matrix
+   Mat F, bestEstimate;
    fundamentalFromKRT(F, K, K, R, t);
+   F = F / norm(F);
    cout << "Ground truth Fundamental:" << endl; //DEBUG
    cout << F << endl << endl; //DEBUG
+
+   // Find the estimated solution with the lowest error
+   double bestError = DBL_MAX;
+   for (auto& solution : solutions) {
+      double curError = norm(F - solution);
+      if (curError < bestError) {
+         bestEstimate = solution;
+         bestError = curError;
+      }
+   }
    cout << "Estimated Fundamental:" << endl; //DEBUG
-   cout << fourPointEstimate << endl << endl; //DEBUG
-   cout << "Frobeniums norm of error:" << endl; //DEBUG
-   cout << norm(F - fourPointEstimate) << endl << endl; //DEBUG
+   cout << bestEstimate << endl << endl; //DEBUG
+   cout << "Frobenius norm of error:" << endl; //DEBUG
+   cout << bestError << endl << endl; //DEBUG
 }
 
 /// <summary>
@@ -137,8 +207,8 @@ void getRandom3DRotationMat(Mat& rotationMat, float xRotMax, float yRotMax, floa
       0, 1, 0,
       -sin(y_angle), 0, cos(y_angle));
    Mat R_z = (Mat_<float>(3, 3) <<
-      cos(x_angle), -sin(x_angle), 0,
-      sin(x_angle), cos(x_angle), 0,
+      cos(z_angle), -sin(z_angle), 0,
+      sin(z_angle), cos(z_angle), 0,
       0, 0, 1);
    rotationMat = R_z * R_y * R_x;
 }
@@ -152,16 +222,6 @@ void getRandom3DRotationMat(Mat& rotationMat, float xRotMax, float yRotMax, floa
 /// <param name="R">Rotation matrix</param>
 /// <param name="t">Translation vector</param>
 void fundamentalFromKRT(Mat& F, const Mat& K1, const Mat& K2, const Mat& R, const Mat& t) {
-   //TODO: install SFM module and uncomment this code block
-   //// Get matrix representation of cross-product with t
-   //Mat t_x = (Mat_<float>(3, 3) <<
-   //   0, -t.at<float>(2, 0), t.at<float>(1, 0),
-   //   t.at<float>(2, 0), 0, -t.at<float>(0, 0),
-   //   -t.at<float>(1, 0), t.at<float>(0, 0), 0);
-   //Mat E = t_x * R;
-   //fundamentalFromEssential(E, K1, K2, F);
-
-   //TODO: install SFM module and remove this code block
    // Reference for this code: https://sourishghosh.com/2016/fundamental-matrix-from-camera-matrices/
    Mat A = K1 * R.t() * t;
    Mat C = (Mat_<float>(3, 3) <<

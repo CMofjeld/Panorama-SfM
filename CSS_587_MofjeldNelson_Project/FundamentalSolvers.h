@@ -10,8 +10,9 @@ using namespace std;
 /// </summary>
 /// <param name="points1">List of four points in the first image</param>
 /// <param name="points2">List of four points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
 /// <returns>Estimated fundamental matrix</returns>
-Mat fourPointMethod(const vector<Point2f>& points1, const vector<Point2f>& points2);
+void fourPointMethod(const vector<Point2f>& points1, const vector<Point2f>& points2, vector<Mat>& solutions);
 
 /// <summary>
 /// Evaluate the accuracy of fourPointMethod().
