@@ -14,6 +14,7 @@
 
 #include "DependencyChecker.h"
 #include "FundamentalSolvers.h"
+#include "FundamentalTests.h"
 
 using namespace cv;
 using namespace std;

@@ -4,9 +4,11 @@
     <ClCompile Include="DependencyChecker.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="FundamentalSolvers.cpp" />
+    <ClCompile Include="FundamentalTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DependencyChecker.h" />
     <ClInclude Include="FundamentalSolvers.h" />
+    <ClInclude Include="FundamentalTests.h" />
   </ItemGroup>
 </Project>
