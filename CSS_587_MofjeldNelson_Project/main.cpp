@@ -73,7 +73,10 @@ int main(int argc, char* argv[])
         exitValue = -1;
     }
 
+    cout << "Testing four point method:" << endl;
     testFourPoint();
+    cout << endl << "Testing RANSAC:" << endl;
+    testEstimateFundamentalMatrix();
 
     printf("Program finished");
     waitKey(0);
