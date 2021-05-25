@@ -117,12 +117,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <AdditionalIncludeDirectories>includes\eigen-3.4-rc1;includes</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_calib3d452d.lib;opencv_core452d.lib;opencv_features2d452d.lib;opencv_flann452d.lib;opencv_highgui452d.lib;opencv_imgcodecs452d.lib;opencv_imgproc452d.lib;opencv_ml452d.lib;opencv_objdetect452d.lib;opencv_photo452d.lib;opencv_shape452d.lib;opencv_stitching452d.lib;opencv_superres452d.lib;opencv_video452d.lib;opencv_videoio452d.lib;opencv_videostab452d.lib;glogd.lib;gflags_nothreads_static_debug.lib;gflags_static_debug.lib;shlwapi.lib;ceres-debug.lib;opencv_viz452d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ceres-debug.lib;gflags_nothreads_static_debug.lib;gflags_static_debug.lib;glogd.lib;opencv_alphamat452d.lib;opencv_aruco452d.lib;opencv_barcode452d.lib;opencv_bgsegm452d.lib;opencv_bioinspired452d.lib;opencv_calib3d452d.lib;opencv_ccalib452d.lib;opencv_core452d.lib;opencv_datasets452d.lib;opencv_dnn452d.lib;opencv_dnn_objdetect452d.lib;opencv_dnn_superres452d.lib;opencv_dpm452d.lib;opencv_face452d.lib;opencv_features2d452d.lib;opencv_flann452d.lib;opencv_fuzzy452d.lib;opencv_gapi452d.lib;opencv_hdf452d.lib;opencv_hfs452d.lib;opencv_highgui452d.lib;opencv_imgcodecs452d.lib;opencv_imgproc452d.lib;opencv_img_hash452d.lib;opencv_intensity_transform452d.lib;opencv_line_descriptor452d.lib;opencv_mcc452d.lib;opencv_ml452d.lib;opencv_objdetect452d.lib;opencv_optflow452d.lib;opencv_phase_unwrapping452d.lib;opencv_photo452d.lib;opencv_plot452d.lib;opencv_quality452d.lib;opencv_rapid452d.lib;opencv_reg452d.lib;opencv_rgbd452d.lib;opencv_saliency452d.lib;opencv_sfm452d.lib;opencv_shape452d.lib;opencv_stereo452d.lib;opencv_stitching452d.lib;opencv_structured_light452d.lib;opencv_superres452d.lib;opencv_surface_matching452d.lib;opencv_text452d.lib;opencv_tracking452d.lib;opencv_video452d.lib;opencv_videoio452d.lib;opencv_videostab452d.lib;opencv_viz452d.lib;opencv_wechat_qrcode452d.lib;opencv_xfeatures2d452d.lib;opencv_ximgproc452d.lib;opencv_xobjdetect452d.lib;opencv_xphoto452d.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -144,9 +145,13 @@
   <ItemGroup>
     <ClCompile Include="DependencyChecker.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SceneConstructor.cpp" />
+    <ClCompile Include="VideoHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DependencyChecker.h" />
+    <ClInclude Include="SceneConstructor.h" />
+    <ClInclude Include="VideoHelper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
