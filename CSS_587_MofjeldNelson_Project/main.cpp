@@ -13,6 +13,8 @@
 #include <iostream>
 
 #include "DependencyChecker.h"
+#include "FundamentalSolvers.h"
+#include "FundamentalTests.h"
 #include "SceneConstructor.h"
 
 using namespace cv;
@@ -27,14 +29,20 @@ int main(int argc, char* argv[])
 {
     int exitValue = 0;
 
-    //renderSceneFromVideo("short_test_vid.mp4", "OpenCV Construction");
-    vector<Vec3f> testPoints;
+    cout << "Testing four point method:" << endl;
+    testFourPoint();
+    cout << endl << "Testing RANSAC:" << endl;
+    testEstimateFundamentalMatrix();
 
+    //renderSceneFromVideo("short_test_vid.mp4", "OpenCV Construction");
+    cout << "Testing point rendering" << endl;
+    vector<Vec3f> testPoints;
     testPoints.push_back(Vec3f(10, 0, 0));
     testPoints.push_back(Vec3f(0, 10, 0));
     testPoints.push_back(Vec3f(0, 0, 10));
-
     renderScene("Test Scene", testPoints);
+
+    printf("Program finished");
 
     waitKey(0);
     return exitValue;

@@ -144,12 +144,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DependencyChecker.cpp" />
+    <ClCompile Include="FundamentalSolvers.cpp" />
+    <ClCompile Include="FundamentalTests.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SceneConstructor.cpp" />
     <ClCompile Include="VideoHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DependencyChecker.h" />
+    <ClInclude Include="FundamentalSolvers.h" />
+    <ClInclude Include="FundamentalTests.h" />
     <ClInclude Include="SceneConstructor.h" />
     <ClInclude Include="VideoHelper.h" />
   </ItemGroup>
