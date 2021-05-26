@@ -1,5 +1,5 @@
 # Panorama SfM
-#### Authors: Carl Mofjelf, Drew Nelson
+#### Authors: Carl Mofjeld, Drew Nelson
 
 This project attempts to follow the methods and recreate the results the "Structure From Motion for Panorama-Style Videos" research done by the University of Washington and Facebook Reality Labs [as seen here](https://arxiv.org/abs/1906.03539). 
 
