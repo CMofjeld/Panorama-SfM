@@ -5,26 +5,18 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="FundamentalSolvers.cpp" />
     <ClCompile Include="FundamentalTests.cpp" />
+    <ClCompile Include="SceneConstructor.cpp" />
+    <ClCompile Include="VideoHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DependencyChecker.h" />
     <ClInclude Include="FundamentalSolvers.h" />
     <ClInclude Include="FundamentalTests.h" />
-    <ClCompile Include="SceneConstructor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VideoHelper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="SceneConstructor.h" />
+    <ClInclude Include="VideoHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DependencyChecker.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneConstructor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VideoHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

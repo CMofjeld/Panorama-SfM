@@ -4,6 +4,7 @@
 
 using namespace cv;
 using namespace std;
+using namespace std::chrono;
 
 /// <summary>
 /// Evaluate the accuracy of fourPointMethod().
@@ -45,3 +46,9 @@ void getRandom3DRotationMat(Mat& rotationMat, float xRotMax, float yRotMax, floa
 /// <param name="R">Rotation matrix</param>
 /// <param name="t">Translation vector</param>
 void fundamentalFromKRT(Mat& F, const Mat& K1, const Mat& K2, const Mat& R, const Mat& t);
+
+/// <summary>
+/// Run the zero-noise trials
+/// </summary>
+/// <param name="numOfTrials">Desired number of trails to run</param>
+void runZeroNoiseTrials(int numOfTrials);
