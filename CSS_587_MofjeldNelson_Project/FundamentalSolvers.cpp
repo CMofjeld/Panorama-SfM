@@ -1,7 +1,8 @@
 #include "FundamentalSolvers.h"
 #include <unordered_set>
 #include <opencv2/features2d.hpp>
-//#include <opencv2/sfm/fundamental.hpp> TODO: install SFM module and uncomment this include
+#include <opencv2/sfm/fundamental.hpp>
+#include <opencv2/calib3d.hpp>
 
 /// <summary>
 /// Estimate the fundamental matrix between two images using four point correspondences.
@@ -352,4 +353,35 @@ Mat fundamentalFromImagePair(const Mat& img1, const Mat& img2) {
 
    // Estimate the fundamental matrix
    return estimateFundamentalMatrix(homogeneousP1, homogeneousP2);
+}
+
+/// <summary>
+/// Decompose a Fundamental matrix into a relative rotation and translation that are
+/// consistent with outward facing spherical motion.
+/// </summary>
+/// <param name="F">Fundamental matrix</param>
+/// <param name="K">Camera intrinsic matrix</param>
+/// <param name="R">[Output] Rotation matrix</param>
+/// <param name="t">[Output] Translation vector</param>
+/// <returns>Estimated fundamental matrix</returns>
+void decomposeFundamentalMat(const Mat& F, const Mat& K, Mat& R, Mat& t) {
+   // First get the essential matrix from the fundamental
+   Mat E;   // Essential matrix
+   sfm::essentialFromFundamental(F, K, K, E);
+
+   // Decompose the essential matrix
+   Mat Ra;  // first rotation estimate
+   Mat Rb;  // second rotation estimate
+   decomposeEssentialMat(E, Ra, Rb, t);
+
+   // Determine which estimate for rotation is consistent with spherical motion
+   Mat ta;  // translation according to Ra
+   Mat tb;  // translation according to Rb
+   Ra.col(2).copyTo(ta);
+   ta.at<float>(2, 0) -= 1;
+   Rb.col(2).copyTo(tb);
+   tb.at<float>(2, 0) -= 1;
+   double sa = ta.dot(t) / norm(ta);   // score first estimate
+   double sb = tb.dot(t) / norm(tb);   // score second estimate
+   R = sa > sb ? Ra : Rb;
 }

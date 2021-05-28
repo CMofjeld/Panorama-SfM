@@ -71,3 +71,14 @@ int countInliersFundamental(const Mat& F, const Mat& points1, const Mat& points2
 /// <param name="img2">Second image</param>
 /// <returns>Estimated fundamental matrix</returns>
 Mat fundamentalFromImagePair(const Mat& img1, const Mat& img2);
+
+/// <summary>
+/// Decompose a Fundamental matrix into a relative rotation and translation that are
+/// consistent with outward facing spherical motion.
+/// </summary>
+/// <param name="F">Fundamental matrix</param>
+/// <param name="K">Camera intrinsic matrix</param>
+/// <param name="R">[Output] Rotation matrix</param>
+/// <param name="t">[Output] Translation vector</param>
+/// <returns>Estimated fundamental matrix</returns>
+void decomposeFundamentalMat(const Mat& F, const Mat& K, Mat& R, Mat& t);
