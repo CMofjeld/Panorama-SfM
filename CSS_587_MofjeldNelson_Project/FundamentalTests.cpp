@@ -282,7 +282,7 @@ void saveTrailResults(String fileName, vector<TestResult> results)
     {
         if (remove(fileName.c_str()) != 0)
         {
-            printf("Error occurred deleting existing file");
+            printf("Error occurred deleting existing file\n");
             return;
         }
     }
@@ -293,9 +293,39 @@ void saveTrailResults(String fileName, vector<TestResult> results)
     for (int i = 0; i < results.size(); i++)
     {
         resultFile << i << "," << results.at(i).normOfError << "," << results.at(i).solverTime << endl;
+
+#ifdef LOG_DETAILS
+        cout << i << "," << results.at(i).normOfError << "," << results.at(i).solverTime << endl;
+#endif
     }
 
     resultFile.close();
+}
+
+/// <summary>
+/// Temporary method to handle the strange behavior we're seeing when our fundamental
+/// matrix has a high norm of error. The beahvior we're seeing is that the values between
+/// the caulculated and ground truth matrices are similar with the exception that their sign is the opposed
+/// which is yielding the high error. 
+/// 
+/// To deal with this temporarily, we'll flip the sign in our calculated matrix and recalculate the error
+/// </summary>
+/// <param name="groundTruthFundamental">Ground truth fundamental matrix</param>
+/// <param name="calculatedFundamental">Best estimated calculated fundamental matrix</param>
+/// <returns></returns>
+double handleHighErrorResult(Mat groundTruthFundamental, Mat calculatedFundamental)
+{
+#ifdef LOG_DETAILS
+    cout << "High error found with calculated fundamental matrix. Applying temporary fix" << endl;
+    cout << "Ground truth Fundamental:" << endl;
+    cout << groundTruthFundamental << endl << endl;
+
+    cout << "Estimated Fundamental:" << endl;
+    cout << calculatedFundamental << endl << endl;
+#endif
+
+    Mat flippedResult = calculatedFundamental * -1;
+    return norm(groundTruthFundamental - flippedResult);
 }
 
 /// <summary>
@@ -365,16 +395,7 @@ void runZeroNoiseTrials(int numOfTrials)
 
         if (result.normOfError > 1)
         {
-            //cout << "Ground truth Fundamental:" << endl;
-            //cout << groundTruthFundamental << endl << endl;
-
-            //// Find the estimated solution with the lowest error
-            //cout << "Estimated Fundamental:" << endl;
-            //cout << bestEstimate << endl << endl;
-
-            Mat absGroundTruth = abs(groundTruthFundamental);
-            Mat absCalculated = abs(bestEstimate);
-            result.normOfError = norm(absGroundTruth - absCalculated);
+            result.normOfError = handleHighErrorResult(groundTruthFundamental, bestEstimate);
         }
 
         results.push_back(result);
