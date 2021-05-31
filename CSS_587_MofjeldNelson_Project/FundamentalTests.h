@@ -1,6 +1,7 @@
 #pragma once
 #include <opencv2/core.hpp>
 #include <vector>
+#include "FileHelper.h"
 
 using namespace cv;
 using namespace std;
@@ -52,3 +53,9 @@ void fundamentalFromKRT(Mat& F, const Mat& K1, const Mat& K2, const Mat& R, cons
 /// </summary>
 /// <param name="numOfTrials">Desired number of trails to run</param>
 void runZeroNoiseTrials(int numOfTrials);
+
+/// <summary>
+/// Run the trials that apply guassian noise
+/// </summary>
+/// <param name="numOfTrialsPerLevel">Number of trails to run per gaussian level</param>
+void runNoiseTrials(int numOfTrialsPerLevel);

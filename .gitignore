@@ -391,4 +391,5 @@ CSS_587_MofjeldNelson_Project/bin
 CSS_587_MofjeldNelson_Project/includes
 CSS_587_MofjeldNelson_Project/libs
 CSS_587_MofjeldNelson_Project/video_dump
-CSS_587_MofjeldNelson_Project/zero_noise_trail.csv
+CSS_587_MofjeldNelson_Project/results
+CSS_587_MofjeldNelson_Project/*.csv

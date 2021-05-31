@@ -7,6 +7,7 @@
     <ClCompile Include="FundamentalTests.cpp" />
     <ClCompile Include="SceneConstructor.cpp" />
     <ClCompile Include="VideoHelper.cpp" />
+    <ClCompile Include="FileHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DependencyChecker.h" />
@@ -14,6 +15,7 @@
     <ClInclude Include="FundamentalTests.h" />
     <ClInclude Include="SceneConstructor.h" />
     <ClInclude Include="VideoHelper.h" />
+    <ClInclude Include="FileHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DependencyChecker.h">

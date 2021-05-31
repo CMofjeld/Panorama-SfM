@@ -4,12 +4,10 @@
 * Carl Mofjeld, Drew Nelson
 *
 * Description:
-* TODO: Add more description for the file when we're further along in the project
+* Utility methods to use when interacting with the input video
 */
 
 #include "VideoHelper.h"
-
-struct stat info;
 
 /// <summary>
 /// Read a video from the local "Input" directory into memory.
@@ -26,58 +24,6 @@ bool loadVideo(String fileName, VideoCapture& cap)
 		printf("Failed to read video at %s", fileName.c_str());
 	}
 	return videoLoaded;
-}
-
-/// <summary>
-/// Attempt to delete a directory and its contents. 
-/// </summary>
-/// <param name="directoryPath">Full path of the directory to remove</param>
-/// <returns>True if directory deleted. False otherwise</returns>
-bool deleteDirectory(String directoryPath)
-{
-	bool directoryRemoved = true;
-
-	// Try deleting the directory if it exists
-	if (stat(directoryPath.c_str(), &info) == 0)
-	{
-		error_code errorCode;
-		if (!filesystem::remove_all(directoryPath, errorCode))
-		{
-			printf("Error occurred deleting video dump directory: %s\n", errorCode.message().c_str());
-			directoryRemoved = false;
-		}
-	}
-
-	// Confirm that the directory doesn't exists
-	directoryRemoved = stat(directoryPath.c_str(), &info) != 0;
-
-	return directoryRemoved;
-}
-
-/// <summary>
-/// Attempt to create a directory (if it doesn't exist already)
-/// </summary>
-/// <param name="directoryPath">Path of the directory to create</param>
-/// <returns>True if directory exists | False otherwise</returns>
-bool createDirectory(String directoryPath)
-{
-	bool directoryCreated = true;
-
-	// Attempt to create the directory
-	if (stat(directoryPath.c_str(), &info) != 0)
-	{
-		error_code errorCode;
-		if (!filesystem::create_directory(directoryPath, errorCode))
-		{
-			printf("Error occurred creating video dump directory: %s", errorCode.message().c_str());
-			directoryCreated = false;
-		}
-	}
-
-	// Check to see if the directory was actually made
-	directoryCreated = stat(directoryPath.c_str(), &info) == 0;
-
-	return directoryCreated;
 }
 
 /// <summary>

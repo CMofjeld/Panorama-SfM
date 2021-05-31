@@ -15,6 +15,8 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 
+#include "FileHelper.h"
+
 using namespace std;
 using namespace cv;
 

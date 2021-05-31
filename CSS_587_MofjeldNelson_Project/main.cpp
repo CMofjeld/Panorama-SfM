@@ -27,6 +27,8 @@ using namespace std;
 /// <returns></returns>
 int main(int argc, char* argv[])
 {
+    const int NUM_ZERO_NOISE_TRIAL = 10000;
+    const int NUM_TRIALS_PER_NOISE_LEVEL = 1000;
     int exitValue = 0;
 
     // Run initial test
@@ -36,7 +38,8 @@ int main(int argc, char* argv[])
     testEstimateFundamentalMatrix();
 
     // Run Trials
-    // runZeroNoiseTrials(10000);
+    // runZeroNoiseTrials(NUM_ZERO_NOISE_TRIAL);
+    // runNoiseTrials(NUM_TRIALS_PER_NOISE_LEVEL);
 
     //Render points
     cout << "Testing point rendering" << endl;
