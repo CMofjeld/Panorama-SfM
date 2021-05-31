@@ -8,7 +8,7 @@
 #include "FundamentalTests.h"
 #include "FundamentalSolvers.h"
 
-#define LOG_DETAILS
+// #define LOG_DETAILS
 
 struct TestResult
 {
