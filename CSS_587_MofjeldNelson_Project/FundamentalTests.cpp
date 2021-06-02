@@ -344,7 +344,7 @@ double handleHighErrorResult(Mat groundTruthFundamental, Mat calculatedFundament
 long calculateAndTimeFundamentalMatrix(Mat homogeneousP1, Mat homogeneousP2, Mat& bestEstimate)
 {
     auto start = high_resolution_clock::now();
-    bestEstimate = estimateFundamentalMatrix(homogeneousP1, homogeneousP2);
+    bestEstimate = estimateFundamentalMatrix(homogeneousP1, homogeneousP2, 4);
     auto stop = high_resolution_clock::now();
 
     // Find the estimated solution with the lowest error

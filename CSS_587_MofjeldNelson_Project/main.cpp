@@ -32,13 +32,13 @@ int main(int argc, char* argv[])
     int exitValue = 0;
 
     // Run initial test
-    cout << "Testing four point method:" << endl;
-    testFourPoint();
-    cout << endl << "Testing RANSAC:" << endl;
-    testEstimateFundamentalMatrix();
+    //cout << "Testing four point method:" << endl;
+    //testFourPoint();
+    //cout << endl << "Testing RANSAC:" << endl;
+    //testEstimateFundamentalMatrix();
 
     // Run Trials
-    // runZeroNoiseTrials(NUM_ZERO_NOISE_TRIAL);
+    runZeroNoiseTrials(NUM_ZERO_NOISE_TRIAL);
     // runNoiseTrials(NUM_TRIALS_PER_NOISE_LEVEL);
 
     //Render points

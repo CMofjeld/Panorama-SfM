@@ -155,6 +155,62 @@ void fourPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& soluti
 }
 
 /// <summary>
+/// Estimate the fundamental matrix between two images using seven point correspondences.
+/// </summary>
+/// <param name="points1">List of seven points in the first image</param>
+/// <param name="points2">List of seven points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
+void sevenPointMethod(const vector<Point2f>& points1, const vector<Point2f>& points2, vector<Mat>& solutions) {
+   Mat solver_results = findFundamentalMat(points1, points2, FM_7POINT);
+   solver_results.convertTo(solver_results, CV_32F);
+   for (size_t i = 0; i < solver_results.rows; i += 3)
+   {
+      Mat single_result = solver_results(Rect(0, i, 3, 3));
+      solutions.push_back(single_result / norm(single_result));
+   }
+}
+
+/// <summary>
+/// Estimate the fundamental matrix between two images using seven point correspondences.
+/// </summary>
+/// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
+/// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
+void sevenPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions) {
+   Mat solver_results = findFundamentalMat(points1, points2, FM_7POINT);
+   solver_results.convertTo(solver_results, CV_32F);
+   for (size_t i = 0; i < solver_results.rows; i += 3)
+   {
+      Mat single_result = solver_results(Rect(0, i, 3, 3));
+      solutions.push_back(single_result / norm(single_result));
+   }
+}
+
+/// <summary>
+/// Estimate the fundamental matrix between two images using eight point correspondences.
+/// </summary>
+/// <param name="points1">List of seven points in the first image</param>
+/// <param name="points2">List of seven points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
+void eightPointMethod(const vector<Point2f>& points1, const vector<Point2f>& points2, vector<Mat>& solutions) {
+   Mat solver_result = findFundamentalMat(points1, points2, FM_8POINT);
+   solver_result.convertTo(solver_result, CV_32F);
+   solutions.push_back(solver_result / norm(solver_result));
+}
+
+/// <summary>
+/// Estimate the fundamental matrix between two images using eight point correspondences.
+/// </summary>
+/// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
+/// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
+void eightPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions) {
+   Mat solver_result = findFundamentalMat(points1, points2, FM_8POINT);
+   solver_result.convertTo(solver_result, CV_32F);
+   solutions.push_back(solver_result / norm(solver_result));
+}
+
+/// <summary>
 /// Estimate the fundamental matrix robustly with RANSAC and the four point method.
 /// </summary>
 /// <param name="points1">List of points in the first image</param>
@@ -162,7 +218,7 @@ void fourPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& soluti
 /// <param name="iterations">Maximum number of iterations</param>
 /// <param name="threshold">Error threshold for inlier/outlier calculation</param>
 /// <returns>Estimated fundamental matrix</returns>
-Mat estimateFundamentalMatrix(const vector<Point2f>& points1, const vector<Point2f>& points2, int iterations, float threshold)
+Mat estimateFundamentalMatrix(const vector<Point2f>& points1, const vector<Point2f>& points2, int minimumPoints, int iterations, float threshold)
 {
    // TODO: input validation
    Mat bestEstimate;       // Best estimate for fundamental matrix
@@ -170,7 +226,6 @@ Mat estimateFundamentalMatrix(const vector<Point2f>& points1, const vector<Point
    static RNG rng(12345);  // Random number generator for selecting random subsets
    int minIndex = 0;                // Minimum subset index
    int maxIndex = points1.size();   // Maximum subset index
-   const int subsampleSize = 4;     // Minimum number of correspondences to estimate F
 
    // For specified iterations:
    for (int i = 0; i < iterations; i++)
@@ -178,7 +233,7 @@ Mat estimateFundamentalMatrix(const vector<Point2f>& points1, const vector<Point
       // Select random subsample of 4
       vector<int> indices;
       unordered_set<int> previousIndices;
-      for (size_t i = 0; i < subsampleSize; i++)
+      for (size_t i = 0; i < minimumPoints; i++)
       {
          int newRandomIndex;
          do
@@ -195,7 +250,20 @@ Mat estimateFundamentalMatrix(const vector<Point2f>& points1, const vector<Point
 
       // Get potential solutions
       vector<Mat> solutions;
-      fourPointMethod(subsample1, subsample2, solutions);
+      switch (minimumPoints)
+      {
+      case 4:
+         fourPointMethod(subsample1, subsample2, solutions);
+         break;
+      case 7:
+         sevenPointMethod(subsample1, subsample2, solutions);
+         break;
+      case 9:
+         eightPointMethod(subsample1, subsample2, solutions);
+         break;
+      default:
+         break;
+      }
 
       // Check for new best estimate
       for (auto& solution : solutions) {
@@ -218,7 +286,7 @@ Mat estimateFundamentalMatrix(const vector<Point2f>& points1, const vector<Point
 /// <param name="iterations">Maximum number of iterations</param>
 /// <param name="threshold">Error threshold for inlier/outlier calculation</param>
 /// <returns>Estimated fundamental matrix</returns>
-Mat estimateFundamentalMatrix(const Mat& points1, const Mat& points2, int iterations, float threshold)
+Mat estimateFundamentalMatrix(const Mat& points1, const Mat& points2, int minimumPoints, int iterations, float threshold)
 {
    // TODO: input validation
    Mat bestEstimate;       // Best estimate for fundamental matrix
@@ -226,15 +294,14 @@ Mat estimateFundamentalMatrix(const Mat& points1, const Mat& points2, int iterat
    static RNG rng(12345);  // Random number generator for selecting random subsets
    int minIndex = 0;                // Minimum subset index
    int maxIndex = points1.rows;     // Maximum subset index
-   const int subsampleSize = 4;     // Minimum number of correspondences to estimate F
 
    // For specified iterations:
    for (int i = 0; i < iterations; i++)
    {
       // Select random subsample of 4
       unordered_set<int> previousIndices;
-      Mat subsample1(subsampleSize, points1.cols, CV_32F), subsample2(subsampleSize, points2.cols, CV_32F);
-      for (size_t i = 0; i < subsampleSize; i++)
+      Mat subsample1(minimumPoints, points1.cols, CV_32F), subsample2(minimumPoints, points2.cols, CV_32F);
+      for (size_t i = 0; i < minimumPoints; i++)
       {
          int newRandomIndex;
          do
@@ -247,7 +314,20 @@ Mat estimateFundamentalMatrix(const Mat& points1, const Mat& points2, int iterat
 
       // Get potential solutions
       vector<Mat> solutions;
-      fourPointMethod(subsample1, subsample2, solutions);
+      switch (minimumPoints)
+      {
+      case 4:
+         fourPointMethod(subsample1, subsample2, solutions);
+         break;
+      case 7:
+         sevenPointMethod(subsample1, subsample2, solutions);
+         break;
+      case 9:
+         eightPointMethod(subsample1, subsample2, solutions);
+         break;
+      default:
+         break;
+      }
 
       // Check for new best estimate
       for (auto& solution : solutions) {
