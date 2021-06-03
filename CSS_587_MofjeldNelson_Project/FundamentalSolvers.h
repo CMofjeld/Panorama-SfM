@@ -22,6 +22,38 @@ void fourPointMethod(const vector<Point2f>& points1, const vector<Point2f>& poin
 void fourPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions);
 
 /// <summary>
+/// Estimate the fundamental matrix between two images using seven point correspondences.
+/// </summary>
+/// <param name="points1">List of seven points in the first image</param>
+/// <param name="points2">List of seven points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
+void sevenPointMethod(const vector<Point2f>& points1, const vector<Point2f>& points2, vector<Mat>& solutions);
+
+/// <summary>
+/// Estimate the fundamental matrix between two images using seven point correspondences.
+/// </summary>
+/// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
+/// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
+void sevenPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions);
+
+/// <summary>
+/// Estimate the fundamental matrix between two images using eight point correspondences.
+/// </summary>
+/// <param name="points1">List of seven points in the first image</param>
+/// <param name="points2">List of seven points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
+void eightPointMethod(const vector<Point2f>& points1, const vector<Point2f>& points2, vector<Mat>& solutions);
+
+/// <summary>
+/// Estimate the fundamental matrix between two images using eight point correspondences.
+/// </summary>
+/// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
+/// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
+void eightPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions);
+
+/// <summary>
 /// Estimate the fundamental matrix robustly with RANSAC and the four point method.
 /// </summary>
 /// <param name="points1">List of points in the first image</param>
