@@ -10,13 +10,37 @@
 
 // #define LOG_DETAILS
 
+/// <summary>
+/// Utility structure to help encapsulate test information
+/// </summary>
 struct TestResult
 {
-    // TOOD: If we get time to try other solvers, we can add a property here 
-    //       to help indicate which type solver type was used for this test
+    SolverType solverType;
     long solverTime; // in microseconds
     double normOfError;
+    int iterationIndex;
 };
+
+/// <summary>
+/// Utility method to create a print friendly representation of the solver type
+/// </summary>
+/// <param name="solverType">Solver type to convert</param>
+/// <returns>Solver type as string</returns>
+string solverTypeToString(SolverType solverType)
+{
+    switch (solverType)
+    {
+        case FourPoint:
+            return "FourPoint";
+        case SixPoint:
+            return "SixPoint";
+        case CV_SevenPoint:
+            return "CV_SevenPoint";
+        case CV_EightPoint:
+            return "CV_EightPoint";
+    }
+    return "Unknown";
+}
 
 /// <summary>
 /// Evaluate the accuracy of fourPointMethod().
@@ -41,7 +65,7 @@ void testFourPoint() {
    // The pose of the first camera is used as the origin of the
    // global coordinate frame.
    const float FOCAL_LEN = 600.f;   // Ground truth focal length
-   const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10° rotation
+   const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10ï¿½ rotation
 
    Mat K = Mat::eye(Size(3, 3), CV_32FC1);  // Camera intrinsics
    K.at<float>(0, 0) = FOCAL_LEN;
@@ -116,7 +140,7 @@ void testEstimateFundamentalMatrix() {
    // The pose of the first camera is used as the origin of the
    // global coordinate frame.
    const float FOCAL_LEN = 600.f;   // Ground truth focal length
-   const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10° rotation
+   const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10ï¿½ rotation
 
    Mat K = Mat::eye(Size(3, 3), CV_32FC1);  // Camera intrinsics
    K.at<float>(0, 0) = FOCAL_LEN;
@@ -236,7 +260,7 @@ void getRandom3DRotationMat(Mat& rotationMat, float xRotMax, float yRotMax, floa
 /// <param name="rotationMat">[Output] Rotation matrix</param>
 void getRandom3DRotationMat(Mat& rotationMat) {
     static RNG rng(12345);
-    const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10° rotation
+    const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10ï¿½ rotation
     float x_angle = rng.uniform(-MAX_ROTATION, MAX_ROTATION);
     float y_angle = rng.uniform(-MAX_ROTATION, MAX_ROTATION);
     float z_angle = rng.uniform(-MAX_ROTATION, MAX_ROTATION);
@@ -295,13 +319,12 @@ void saveTrailResults(String fileName, vector<TestResult> results)
 #ifdef LOG_DETAILS
     cout << "Results for " << fileName << ":" << endl;
 #endif
-
     for (int i = 0; i < results.size(); i++)
     {
-        resultFile << i << "," << results.at(i).normOfError << "," << results.at(i).solverTime << endl;
+        resultFile << results.at(i).iterationIndex << "," << solverTypeToString(results.at(i).solverType) << "," << results.at(i).normOfError << "," << results.at(i).solverTime << endl;
 
 #ifdef LOG_DETAILS
-        cout << i << "," << results.at(i).normOfError << "," << results.at(i).solverTime << endl;
+        cout << results.at(i).iterationIndex << "," << solverTypeToString(results.at(i).solverType) << "," << results.at(i).normOfError << "," << results.at(i).solverTime << endl;
 #endif
     }
 
@@ -341,10 +364,10 @@ double handleHighErrorResult(Mat groundTruthFundamental, Mat calculatedFundament
 /// <param name="homogeneousP2">Homogeneous matrix from project points of the second camera</param>
 /// <param name="bestEstimate">[Output] Best esetimated fundamental matrix</param>
 /// <returns>Number of microseconds it took to determine the best estimated fundamental matrix</returns>
-long calculateAndTimeFundamentalMatrix(Mat homogeneousP1, Mat homogeneousP2, Mat& bestEstimate)
+long calculateAndTimeFundamentalMatrix(CustomSolver solver, Mat homogeneousP1, Mat homogeneousP2, Mat& bestEstimate)
 {
     auto start = high_resolution_clock::now();
-    bestEstimate = estimateFundamentalMatrix(homogeneousP1, homogeneousP2, 4);
+    bestEstimate = estimateFundamentalMatrix(solver, homogeneousP1, homogeneousP2);
     auto stop = high_resolution_clock::now();
 
     // Find the estimated solution with the lowest error
@@ -472,6 +495,56 @@ Mat createIntrinsicMatrix(float focalLength)
 }
 
 /// <summary>
+/// Estimate the fundamental matrix using each available solver
+/// </summary>
+/// <param name="iterationIndex">Trial index</param>
+/// <param name="homogeneousP1">Homogeneous points from first matrix</param>
+/// <param name="homogeneousP2">Homogeneous points from second matrix</param>
+/// <param name="intrinsicMatrix">Camera intrinsic matrix</param>
+/// <param name="rotationMat">Camera rotation matrix</param>
+/// <param name="translationVector">Camera translation vector</param>
+/// <returns></returns>
+vector<TestResult> estimateFundamentals(int iterationIndex, Mat homogeneousP1, Mat homogeneousP2, Mat intrinsicMatrix, Mat rotationMat, Mat translationVector)
+{
+    vector<TestResult> results;
+
+    //TODO: If we have time, we should consider moving this list elsewhere since it's being redefined for each trail attempt
+    CustomSolver solvers[] = { FourPointSolver, /*SixPointSolver, */SevenPointSolver, EightPointSolver }; 
+    Mat groundTruthFundamental = getNormalizedGroundTruthMatrix(intrinsicMatrix, rotationMat, translationVector);
+    for (auto solver : solvers)
+    {
+        TestResult result;
+        Mat bestEstimate;
+        double timeInMicroseconds = calculateAndTimeFundamentalMatrix(solver, homogeneousP1, homogeneousP2, bestEstimate);
+
+        result.iterationIndex = iterationIndex;
+        result.normOfError = computeNormOfError(groundTruthFundamental, bestEstimate);
+        result.solverTime = timeInMicroseconds;
+        result.solverType = solver.solverType;
+        results.push_back(result);
+    }
+    return results;
+}
+
+/// <summary>
+/// Run both the zero-noise and noisy trials. Ensures the result directory is created before running the trials
+/// </summary>
+/// <param name="numOfZeroNoiseTrails">Number of zero-noise trails to run.</param>
+/// <param name="numOfTrailsPerNoiseLevel">Number of trials to run per noise level</param>
+void runAllTrials(int numOfZeroNoiseTrails, int numOfTrailsPerNoiseLevel)
+{
+    const std::string resultDir = "results";
+    if (!createDirectory(resultDir))
+    {
+        printf("Canceling trail tests - failed to create result directory");
+        return;
+    }
+
+    runZeroNoiseTrials(numOfZeroNoiseTrails);
+    runNoiseTrials(numOfTrailsPerNoiseLevel);
+}
+
+/// <summary>
 /// Run the trials that apply guassian noise
 /// </summary>
 /// <param name="numOfTrialsPerLevel">Number of trails to run per gaussian level</param>
@@ -485,12 +558,6 @@ void runNoiseTrials(int numOfTrialsPerLevel)
 
     const std::string resultDir = "results";    
     Mat intrinsicMatrix = createIntrinsicMatrix(FOCAL_LEN);
-
-    if (!createDirectory(resultDir))
-    {
-        printf("Canceling trail tests - failed to create result directory");
-        return;
-    }
 
     for (int noiseLevelIndex = 0; noiseLevelIndex < numOfLevels; noiseLevelIndex++)
     {
@@ -517,16 +584,9 @@ void runNoiseTrials(int numOfTrialsPerLevel)
             Mat homogeneousP1, homogeneousP2;
             getHomogeneousMatsFrom3DPoints(points3d, noisyPoints3d, intrinsicMatrix, rotationVector, translationVector, homogeneousP1, homogeneousP2);
 
-            // Get the best estimated fundamental matrix
-            Mat bestEstimate;
-            double timeInMicroseconds = calculateAndTimeFundamentalMatrix(homogeneousP1, homogeneousP2, bestEstimate);
-
-            // Calculate ground truth fundamental matrix
-            Mat groundTruthFundamental = getNormalizedGroundTruthMatrix(intrinsicMatrix, rotationMat, translationVector);
-
-            result.normOfError = computeNormOfError(groundTruthFundamental, bestEstimate); /*norm(groundTruthFundamental - bestEstimate);*/
-            result.solverTime = timeInMicroseconds;
-            results.push_back(result);
+            // Estimate the fundamental matrix with each solver
+            vector<TestResult> solverResults = estimateFundamentals(trialIndex, homogeneousP1, homogeneousP2, intrinsicMatrix, rotationMat, translationVector);
+            results.insert(results.end(), solverResults.begin(), solverResults.end());
         }
         saveTrailResults(resultFilePath, results);
     }
@@ -547,12 +607,6 @@ void runZeroNoiseTrials(int numOfTrials)
 
     vector<double> errorNorms;
     vector<TestResult> results;
-
-    if (!createDirectory(resultDir))
-    {
-        printf("Canceling trail tests - failed to create result directory");
-        return;
-    }
 
     for (int i = 0; i < numOfTrials; i++)
     {
@@ -575,16 +629,9 @@ void runZeroNoiseTrials(int numOfTrials)
         Mat homogeneousP1, homogeneousP2;
         getHomogeneousMatsFrom3DPoints(points3d, intrinsicMatrix, rotationVector, translationVector, homogeneousP1, homogeneousP2);
 
-        // Get the best estimated fundamental matrix
-        Mat bestEstimate;
-        double timeInMicroseconds = calculateAndTimeFundamentalMatrix(homogeneousP1, homogeneousP2, bestEstimate);
-
-        // Calculate ground truth fundamental matrix
-        Mat groundTruthFundamental = getNormalizedGroundTruthMatrix(intrinsicMatrix, rotationMat, translationVector);
-
-        result.normOfError = computeNormOfError(groundTruthFundamental, bestEstimate); /*norm(groundTruthFundamental - bestEstimate);*/
-        result.solverTime = timeInMicroseconds;
-        results.push_back(result);
+        // Estimate the fundamental matrix with each solver
+        vector<TestResult> solverResults = estimateFundamentals(i, homogeneousP1, homogeneousP2, intrinsicMatrix, rotationMat, translationVector);
+        results.insert(results.end(), solverResults.begin(), solverResults.end());
     }
 
     saveTrailResults(resultDir + "/zero_noise_trail.csv", results);

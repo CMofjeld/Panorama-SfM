@@ -38,8 +38,7 @@ int main(int argc, char* argv[])
     //testEstimateFundamentalMatrix();
 
     // Run Trials
-    runZeroNoiseTrials(NUM_ZERO_NOISE_TRIAL);
-    // runNoiseTrials(NUM_TRIALS_PER_NOISE_LEVEL);
+    // runAllTrials(100, 10);
 
     //Render points
     cout << "Testing point rendering" << endl;

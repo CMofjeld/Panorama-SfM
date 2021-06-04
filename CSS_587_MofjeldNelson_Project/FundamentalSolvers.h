@@ -5,6 +5,26 @@
 using namespace cv;
 using namespace std;
 
+enum SolverType
+{
+    Unknown,
+    FourPoint,
+    SixPoint,
+    CV_SevenPoint,
+    CV_EightPoint
+};
+
+struct CustomSolver
+{
+    SolverType solverType;
+    int requiredNumOfPoints;
+};
+
+const CustomSolver FourPointSolver = { FourPoint, 4 };
+const CustomSolver SixPointSolver = { SixPoint, 6 };
+const CustomSolver SevenPointSolver = { CV_SevenPoint, 7 };
+const CustomSolver EightPointSolver = { CV_EightPoint, 8 };
+
 /// <summary>
 /// Estimate the fundamental matrix between two images using four point correspondences.
 /// </summary>
@@ -66,12 +86,13 @@ Mat estimateFundamentalMatrix(const vector<Point2f>& points1, const vector<Point
 /// <summary>
 /// Estimate the fundamental matrix robustly with RANSAC and the four point method.
 /// </summary>
+/// <param name="solver">Details which solver we should use to estimate the fundamental matrix</param>
 /// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
 /// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
 /// <param name="iterations">Maximum number of iterations</param>
 /// <param name="threshold">Error threshold for inlier/outlier calculation</param>
 /// <returns>Estimated fundamental matrix</returns>
-Mat estimateFundamentalMatrix(const Mat& points1, const Mat& points2, int minimumPoints = 4, int iterations = 500, float threshold = 1.0);
+Mat estimateFundamentalMatrix(const CustomSolver solver, const Mat& points1, const Mat& points2, int iterations = 500, float threshold = 1.0);
 
 /// <summary>
 /// Count the number of inliers in a set of point correspondences based on a given
