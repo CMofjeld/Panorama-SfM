@@ -1,8 +1,13 @@
+#include <Eigen/Eigenvalues>
+#include <opencv2/core/eigen.hpp>
 #include "FundamentalSolvers.h"
 #include <unordered_set>
 #include <opencv2/features2d.hpp>
 #include <opencv2/sfm/fundamental.hpp>
 #include <opencv2/calib3d.hpp>
+#include <iostream>
+using namespace std;
+using namespace cv;
 
 /// <summary>
 /// Estimate the fundamental matrix between two images using four point correspondences.
@@ -151,6 +156,76 @@ void fourPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& soluti
    {
       Mat solution = Fmats[0] * roots[i] + Fmats[1] * (1.f - roots[i]);
       solutions.push_back(solution.t() / norm(solution));
+   }
+}
+
+/// <summary>
+/// Estimate the fundamental matrix between two images using six point correspondences.
+/// </summary>
+/// <param name="points1">List of four points in the first image</param>
+/// <param name="points2">List of four points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
+void sixPointMethod(const vector<Point2f>& points1, const vector<Point2f>& points2, vector<Mat>& solutions) {
+
+}
+
+/// <summary>
+/// Estimate the fundamental matrix between two images using six point correspondences.
+/// </summary>
+/// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
+/// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
+void sixPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions) {
+   // TODO: input validation
+
+   // Construct the design matrices for the equation: (lambda*C1 + C2)f = 0
+   // where f is the vectorized fundamental matrix and lambda is the radial distortion
+   size_t num_correspondences = points1.rows;
+   Mat C1(num_correspondences, 6, CV_32F), C2(num_correspondences, 6, CV_32F);
+
+   // Construct C1
+   Mat r1 = points1.col(0).mul(points1.col(0)) + points1.col(1).mul(points1.col(1));
+   Mat r2 = points2.col(0).mul(points2.col(0)) + points2.col(1).mul(points2.col(1));
+   C1.col(0).setTo(Scalar(0.f));
+   C1.col(1).setTo(Scalar(0.f));
+   C1.col(2) = points2.col(1).mul(r1);
+   C1.col(3) = points2.col(2).mul(r1);
+   C1.col(4) = points1.col(1).mul(r2);
+   C1.col(5) = points1.col(2).mul(r2);
+
+   // Construct C2
+   // Note that C2 is the same design matrix that the 4-point method uses.
+   C2.col(0) = points1.col(0).mul(points2.col(0)) - points1.col(1).mul(points2.col(1));
+   C2.col(1) = points1.col(0).mul(points2.col(1)) + points1.col(1).mul(points2.col(0));
+   points2.col(0).copyTo(C2.col(2));
+   points2.col(1).copyTo(C2.col(3));
+   points1.col(0).copyTo(C2.col(4));
+   points1.col(1).copyTo(C2.col(5));
+
+   // Solve the generalized eigenvalue problem
+   Eigen::MatrixXf C1_eigen, C2_eigen;
+   cv2eigen(C1, C1_eigen);
+   cv2eigen(C2, C2_eigen);
+   Eigen::GeneralizedEigenSolver<Eigen::MatrixXf> esolver;
+   esolver.compute(C2_eigen, C1_eigen);
+   cout << "E-vals: " << endl << esolver.eigenvalues() << endl;
+   cout << "E-vecs: " << endl << esolver.eigenvectors() << endl;
+
+   // The real eigenvalues are potential solutions for lambda
+   for (int i = 0; i < esolver.eigenvalues().size(); i++)
+   {
+      if (esolver.eigenvalues()(i).imag() == 0) {
+         //cout << esolver.eigenvalues()(i).real() << endl;
+         float lambda = esolver.eigenvalues()(i).real();
+         Eigen::VectorXf f = esolver.eigenvectors().col(i).real();
+         Eigen::Matrix3f F;
+         F << f(0), f(1), f(2),
+            f(1), -f(0), f(3),
+            f(4), f(5), 0;
+         Mat solution;
+         eigen2cv(F, solution);
+         solutions.push_back(solution);
+      }
    }
 }
 

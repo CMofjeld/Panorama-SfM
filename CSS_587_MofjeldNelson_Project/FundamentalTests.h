@@ -12,6 +12,8 @@ using namespace std::chrono;
 /// </summary>
 void testFourPoint();
 
+void testSixPoint();
+
 /// <summary>
 /// Evaluate the performance of estimateFundamentalMatrix().
 /// </summary>

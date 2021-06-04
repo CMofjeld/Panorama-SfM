@@ -42,6 +42,22 @@ void fourPointMethod(const vector<Point2f>& points1, const vector<Point2f>& poin
 void fourPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions);
 
 /// <summary>
+/// Estimate the fundamental matrix between two images using six point correspondences.
+/// </summary>
+/// <param name="points1">List of four points in the first image</param>
+/// <param name="points2">List of four points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
+void sixPointMethod(const vector<Point2f>& points1, const vector<Point2f>& points2, vector<Mat>& solutions);
+
+/// <summary>
+/// Estimate the fundamental matrix between two images using six point correspondences.
+/// </summary>
+/// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
+/// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
+void sixPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions);
+
+/// <summary>
 /// Estimate the fundamental matrix between two images using seven point correspondences.
 /// </summary>
 /// <param name="points1">List of seven points in the first image</param>

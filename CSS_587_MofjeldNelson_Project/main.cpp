@@ -27,7 +27,7 @@ using namespace std;
 /// <returns></returns>
 int main(int argc, char* argv[])
 {
-    const int NUM_ZERO_NOISE_TRIAL = 10000;
+    const int NUM_ZERO_NOISE_TRIAL = 25;
     const int NUM_TRIALS_PER_NOISE_LEVEL = 1000;
     int exitValue = 0;
 
@@ -36,20 +36,21 @@ int main(int argc, char* argv[])
     //testFourPoint();
     //cout << endl << "Testing RANSAC:" << endl;
     //testEstimateFundamentalMatrix();
+    testSixPoint();
 
     // Run Trials
     // runAllTrials(100, 10);
 
     //Render points
-    cout << "Testing point rendering" << endl;
-    vector<Vec3f> testPoints;
-    testPoints.push_back(Vec3f(10, 0, 0));
-    testPoints.push_back(Vec3f(0, 10, 0));
-    testPoints.push_back(Vec3f(0, 0, 10));
-    renderScene("Test Scene", testPoints);
+    //cout << "Testing point rendering" << endl;
+    //vector<Vec3f> testPoints;
+    //testPoints.push_back(Vec3f(10, 0, 0));
+    //testPoints.push_back(Vec3f(0, 10, 0));
+    //testPoints.push_back(Vec3f(0, 0, 10));
+    //renderScene("Test Scene", testPoints);
 
-    printf("Program finished");
+    //printf("Program finished");
 
-    waitKey(0);
-    return exitValue;
+    //waitKey(0);
+    //return exitValue;
 }
