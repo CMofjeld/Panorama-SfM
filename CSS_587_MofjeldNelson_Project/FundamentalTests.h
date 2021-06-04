@@ -59,3 +59,10 @@ void runZeroNoiseTrials(int numOfTrials);
 /// </summary>
 /// <param name="numOfTrialsPerLevel">Number of trails to run per gaussian level</param>
 void runNoiseTrials(int numOfTrialsPerLevel);
+
+/// <summary>
+/// Run both the zero-noise and noisy trials. Ensures the result directory is created before running the trials
+/// </summary>
+/// <param name="numOfZeroNoiseTrails">Number of zero-noise trails to run.</param>
+/// <param name="numOfTrailsPerNoiseLevel">Number of trials to run per noise level</param>
+void runAllTrials(int numOfZeroNoiseTrails, int numOfTrailsPerNoiseLevel);

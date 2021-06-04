@@ -193,9 +193,13 @@ void sevenPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solut
 /// <param name="points2">List of seven points in the second image</param>
 /// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
 void eightPointMethod(const vector<Point2f>& points1, const vector<Point2f>& points2, vector<Mat>& solutions) {
-   Mat solver_result = findFundamentalMat(points1, points2, FM_8POINT);
-   solver_result.convertTo(solver_result, CV_32F);
-   solutions.push_back(solver_result / norm(solver_result));
+    Mat solver_results = findFundamentalMat(points1, points2, FM_8POINT);
+    solver_results.convertTo(solver_results, CV_32F);
+    for (size_t i = 0; i < solver_results.rows; i += 3)
+    {
+        Mat single_result = solver_results(Rect(0, i, 3, 3));
+        solutions.push_back(single_result / norm(single_result));
+    }
 }
 
 /// <summary>
@@ -205,9 +209,13 @@ void eightPointMethod(const vector<Point2f>& points1, const vector<Point2f>& poi
 /// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
 /// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
 void eightPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions) {
-   Mat solver_result = findFundamentalMat(points1, points2, FM_8POINT);
-   solver_result.convertTo(solver_result, CV_32F);
-   solutions.push_back(solver_result / norm(solver_result));
+    Mat solver_results = findFundamentalMat(points1, points2, FM_8POINT);
+    solver_results.convertTo(solver_results, CV_32F);
+    for (size_t i = 0; i < solver_results.rows; i += 3)
+    {
+        Mat single_result = solver_results(Rect(0, i, 3, 3));
+        solutions.push_back(single_result / norm(single_result));
+    }
 }
 
 /// <summary>
@@ -269,12 +277,13 @@ Mat estimateFundamentalMatrix(const vector<Point2f>& points1, const vector<Point
 /// <summary>
 /// Estimate the fundamental matrix robustly with RANSAC and the four point method.
 /// </summary>
+/// <param name="solver">Details which solver we should use to estimate the fundamental matrix</param>
 /// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
 /// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
 /// <param name="iterations">Maximum number of iterations</param>
 /// <param name="threshold">Error threshold for inlier/outlier calculation</param>
 /// <returns>Estimated fundamental matrix</returns>
-Mat estimateFundamentalMatrix(const Mat& points1, const Mat& points2, int iterations, float threshold)
+Mat estimateFundamentalMatrix(CustomSolver solver, const Mat& points1, const Mat& points2, int iterations, float threshold)
 {
    // TODO: input validation
    Mat bestEstimate;       // Best estimate for fundamental matrix
@@ -282,15 +291,14 @@ Mat estimateFundamentalMatrix(const Mat& points1, const Mat& points2, int iterat
    static RNG rng(12345);  // Random number generator for selecting random subsets
    int minIndex = 0;                // Minimum subset index
    int maxIndex = points1.rows;     // Maximum subset index
-   const int SUBSAMPLE_SIZE = 4;    // Minimum points for estimating fundamental
 
    // For specified iterations:
    for (int i = 0; i < iterations; i++)
    {
       // Select random subsample of 4
       unordered_set<int> previousIndices;
-      Mat subsample1(SUBSAMPLE_SIZE, points1.cols, CV_32F), subsample2(SUBSAMPLE_SIZE, points2.cols, CV_32F);
-      for (size_t i = 0; i < SUBSAMPLE_SIZE; i++)
+      Mat subsample1(solver.requiredNumOfPoints, points1.cols, CV_32F), subsample2(solver.requiredNumOfPoints, points2.cols, CV_32F);
+      for (size_t i = 0; i < solver.requiredNumOfPoints; i++)
       {
          int newRandomIndex;
          do
@@ -303,7 +311,19 @@ Mat estimateFundamentalMatrix(const Mat& points1, const Mat& points2, int iterat
 
       // Get potential solutions
       vector<Mat> solutions;
-      fourPointMethod(subsample1, subsample2, solutions);
+
+      switch (solver.solverType)
+      {
+          case FourPoint:
+              fourPointMethod(subsample1, subsample2, solutions);
+              break;
+          case CV_SevenPoint:
+              sevenPointMethod(subsample1, subsample2, solutions);
+              break;
+          case CV_EightPoint:
+              eightPointMethod(subsample1, subsample2, solutions);
+              break;
+      }
 
       // Check for new best estimate
       for (auto& solution : solutions) {

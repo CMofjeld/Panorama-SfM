@@ -32,22 +32,21 @@ int main(int argc, char* argv[])
     int exitValue = 0;
 
     // Run initial test
-    cout << "Testing four point method:" << endl;
+    /*cout << "Testing four point method:" << endl;
     testFourPoint();
     cout << endl << "Testing RANSAC:" << endl;
-    testEstimateFundamentalMatrix();
+    testEstimateFundamentalMatrix();*/
 
     // Run Trials
-    // runZeroNoiseTrials(NUM_ZERO_NOISE_TRIAL);
-    // runNoiseTrials(NUM_TRIALS_PER_NOISE_LEVEL);
+    runAllTrials(100, 10);
 
     //Render points
-    cout << "Testing point rendering" << endl;
+    /*cout << "Testing point rendering" << endl;
     vector<Vec3f> testPoints;
     testPoints.push_back(Vec3f(10, 0, 0));
     testPoints.push_back(Vec3f(0, 10, 0));
     testPoints.push_back(Vec3f(0, 0, 10));
-    renderScene("Test Scene", testPoints);
+    renderScene("Test Scene", testPoints);*/
 
     printf("Program finished");
 
