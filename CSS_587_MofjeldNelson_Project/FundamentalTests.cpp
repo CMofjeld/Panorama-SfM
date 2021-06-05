@@ -164,7 +164,7 @@ void testEstimateFundamentalMatrix() {
    Mat homogeneousP1, homogeneousP2;
    hconcat(Mat(projectedPoints1.size(), 2, CV_32F, projectedPoints1.data()), Mat::ones(projectedPoints1.size(), 1, CV_32F), homogeneousP1);
    hconcat(Mat(projectedPoints2.size(), 2, CV_32F, projectedPoints2.data()), Mat::ones(projectedPoints2.size(), 1, CV_32F), homogeneousP2);
-   Mat bestEstimate = estimateFundamentalMatrix(homogeneousP1, homogeneousP2);
+   Mat bestEstimate = estimateFundamentalMatrix(FourPointSolver, homogeneousP1, homogeneousP2);
 
    // Calculate ground truth fundamental matrix
    Mat F;
