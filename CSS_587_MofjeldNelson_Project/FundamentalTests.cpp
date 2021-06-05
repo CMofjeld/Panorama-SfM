@@ -7,6 +7,7 @@
 #include <opencv2/calib3d.hpp>
 #include "FundamentalTests.h"
 #include "FundamentalSolvers.h"
+using namespace cv;
 
 // #define LOG_DETAILS
 
@@ -65,7 +66,7 @@ void testFourPoint() {
    // The pose of the first camera is used as the origin of the
    // global coordinate frame.
    const float FOCAL_LEN = 600.f;   // Ground truth focal length
-   const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10° rotation
+   const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10ï¿½ rotation
 
    Mat K = Mat::eye(Size(3, 3), CV_32FC1);  // Camera intrinsics
    K.at<float>(0, 0) = FOCAL_LEN;
@@ -140,7 +141,7 @@ void testEstimateFundamentalMatrix() {
    // The pose of the first camera is used as the origin of the
    // global coordinate frame.
    const float FOCAL_LEN = 600.f;   // Ground truth focal length
-   const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10° rotation
+   const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10ï¿½ rotation
 
    Mat K = Mat::eye(Size(3, 3), CV_32FC1);  // Camera intrinsics
    K.at<float>(0, 0) = FOCAL_LEN;
@@ -260,7 +261,7 @@ void getRandom3DRotationMat(Mat& rotationMat, float xRotMax, float yRotMax, floa
 /// <param name="rotationMat">[Output] Rotation matrix</param>
 void getRandom3DRotationMat(Mat& rotationMat) {
     static RNG rng(12345);
-    const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10° rotation
+    const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10ï¿½ rotation
     float x_angle = rng.uniform(-MAX_ROTATION, MAX_ROTATION);
     float y_angle = rng.uniform(-MAX_ROTATION, MAX_ROTATION);
     float z_angle = rng.uniform(-MAX_ROTATION, MAX_ROTATION);

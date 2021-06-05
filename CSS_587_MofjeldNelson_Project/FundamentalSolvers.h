@@ -34,6 +34,14 @@ const CustomSolver EightPointSolver = { CV_EightPoint, 8 };
 void fourPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions);
 
 /// <summary>
+/// Estimate the fundamental matrix between two images using six point correspondences.
+/// </summary>
+/// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
+/// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
+/// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
+void sixPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions);
+
+/// <summary>
 /// Estimate the fundamental matrix between two images using seven point correspondences.
 /// </summary>
 /// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
