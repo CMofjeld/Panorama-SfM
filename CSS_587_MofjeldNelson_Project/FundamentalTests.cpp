@@ -460,10 +460,8 @@ void getHomogeneousMatsFrom3DPoints(vector<Point3f> points3d1, vector<Point3f> p
     // Project the points into each camera rotation
     Mat zeroVec = Mat::zeros(3, 1, DataType<float>::type);
     vector<Point2f> projectedPoints1, projectedPoints2;
-    Mat distCoeffs = Mat::zeros(4, 1, CV_32F);
-    distCoeffs.at<float>(0, 0) = 0.25;
-    projectPoints(points3d1, zeroVec, zeroVec, intrinsicMatrix, distCoeffs, projectedPoints1); // TODO: Should we consider generating a random rotation for this too?
-    projectPoints(points3d2, rotationVector, translationVector, intrinsicMatrix, distCoeffs, projectedPoints2);
+    projectPoints(points3d1, zeroVec, zeroVec, intrinsicMatrix, noArray(), projectedPoints1); // TODO: Should we consider generating a random rotation for this too?
+    projectPoints(points3d2, rotationVector, translationVector, intrinsicMatrix, noArray(), projectedPoints2);
 
     hconcat(Mat(projectedPoints1.size(), 2, CV_32F, projectedPoints1.data()), Mat::ones(projectedPoints1.size(), 1, CV_32F), homogeneousP1);
     hconcat(Mat(projectedPoints2.size(), 2, CV_32F, projectedPoints2.data()), Mat::ones(projectedPoints2.size(), 1, CV_32F), homogeneousP2);
@@ -642,7 +640,7 @@ void runZeroNoiseTrials(int numOfTrials)
 
 void testSixPoint() {
    for (int i = 0; i < 5; i++) {
-      const int NUM_OF_RANDOM_POINTS = 6;
+      const int NUM_OF_RANDOM_POINTS = 100;
       const int MIN_NUMBER_OF_RANDOM_ROTATIONS = 400;
       const int MAX_NUMBER_OF_RANDOM_ROTATIONS = 2000;
       const float FOCAL_LEN = 600.f;   // Ground truth focal length
@@ -660,14 +658,18 @@ void testSixPoint() {
       Mat rotationVector, translationVector;
       getRotationTranslationVectorsFromRotationMat(rotationMat, rotationVector, translationVector);
 
+      // Calculate ground truth fundamental matrix
+      Mat groundTruthFundamental = getNormalizedGroundTruthMatrix(intrinsicMatrix, rotationMat, translationVector);
+      cout << "Ground truth F: " << endl << groundTruthFundamental << endl;
+
       // Get four point estimations
       Mat homogeneousP1, homogeneousP2;
       getHomogeneousMatsFrom3DPoints(points3d, intrinsicMatrix, rotationVector, translationVector, homogeneousP1, homogeneousP2);
       vector<Mat> solutions;
-      sixPointMethod(homogeneousP1, homogeneousP2, solutions);
+      Mat bestEstimate = estimateFundamentalMatrix(SixPointSolver, homogeneousP1, homogeneousP2, 500);
+      cout << "Best estimate: " << endl << bestEstimate << endl;
 
-      // Calculate ground truth fundamental matrix
-      Mat groundTruthFundamental = getNormalizedGroundTruthMatrix(intrinsicMatrix, rotationMat, translationVector);
-      cout << "Ground truth F: " << endl << groundTruthFundamental << endl;
+      // Report error
+      cout << "Frobenius norm of error: " << norm(bestEstimate - groundTruthFundamental) << endl;
    }
 }

@@ -183,24 +183,30 @@ void sixPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutio
    size_t num_correspondences = points1.rows;
    Mat C1(num_correspondences, 6, CV_32F), C2(num_correspondences, 6, CV_32F);
 
+   // Extract x-coords, y-coords, and squared lengths for each set of points
+   Mat x1 = points1.col(0);
+   Mat y1 = points1.col(1);
+   Mat x2 = points2.col(0);
+   Mat y2 = points2.col(1);
+   Mat r1 = x1.mul(x1) + y1.mul(y1);
+   Mat r2 = x2.mul(x2) + y2.mul(y2);
+
    // Construct C1
-   Mat r1 = points1.col(0).mul(points1.col(0)) + points1.col(1).mul(points1.col(1));
-   Mat r2 = points2.col(0).mul(points2.col(0)) + points2.col(1).mul(points2.col(1));
    C1.col(0).setTo(Scalar(0.f));
    C1.col(1).setTo(Scalar(0.f));
-   C1.col(2) = points2.col(1).mul(r1);
-   C1.col(3) = points2.col(2).mul(r1);
-   C1.col(4) = points1.col(1).mul(r2);
-   C1.col(5) = points1.col(2).mul(r2);
+   C1.col(2) = x2.mul(r1);
+   C1.col(3) = y2.mul(r1);
+   C1.col(4) = x1.mul(r2);
+   C1.col(5) = y1.mul(r2);
 
    // Construct C2
    // Note that C2 is the same design matrix that the 4-point method uses.
-   C2.col(0) = points1.col(0).mul(points2.col(0)) - points1.col(1).mul(points2.col(1));
-   C2.col(1) = points1.col(0).mul(points2.col(1)) + points1.col(1).mul(points2.col(0));
-   points2.col(0).copyTo(C2.col(2));
-   points2.col(1).copyTo(C2.col(3));
-   points1.col(0).copyTo(C2.col(4));
-   points1.col(1).copyTo(C2.col(5));
+   C2.col(0) = x1.mul(x2) - y1.mul(y2);
+   C2.col(1) = x1.mul(y2) + y1.mul(x2);
+   x2.copyTo(C2.col(2));
+   y2.copyTo(C2.col(3));
+   x1.copyTo(C2.col(4));
+   y1.copyTo(C2.col(5));
 
    // Solve the generalized eigenvalue problem
    Eigen::MatrixXf C1_eigen, C2_eigen;
@@ -208,14 +214,13 @@ void sixPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutio
    cv2eigen(C2, C2_eigen);
    Eigen::GeneralizedEigenSolver<Eigen::MatrixXf> esolver;
    esolver.compute(C2_eigen, C1_eigen);
-   cout << "E-vals: " << endl << esolver.eigenvalues() << endl;
-   cout << "E-vecs: " << endl << esolver.eigenvectors() << endl;
+   //cout << "E-vals: " << endl << esolver.eigenvalues() << endl;
+   //cout << "E-vecs: " << endl << esolver.eigenvectors() << endl;
 
    // The real eigenvalues are potential solutions for lambda
    for (int i = 0; i < esolver.eigenvalues().size(); i++)
    {
       if (esolver.eigenvalues()(i).imag() == 0) {
-         //cout << esolver.eigenvalues()(i).real() << endl;
          float lambda = esolver.eigenvalues()(i).real();
          Eigen::VectorXf f = esolver.eigenvectors().col(i).real();
          Eigen::Matrix3f F;
@@ -393,6 +398,7 @@ Mat estimateFundamentalMatrix(CustomSolver solver, const Mat& points1, const Mat
          {
             newRandomIndex = rng.uniform(minIndex, maxIndex);
          } while (previousIndices.count(newRandomIndex) > 0);
+         previousIndices.insert(newRandomIndex);
          points1.row(newRandomIndex).copyTo(subsample1.row(i));
          points2.row(newRandomIndex).copyTo(subsample2.row(i));
       }
@@ -404,6 +410,9 @@ Mat estimateFundamentalMatrix(CustomSolver solver, const Mat& points1, const Mat
       {
           case FourPoint:
               fourPointMethod(subsample1, subsample2, solutions);
+              break;
+          case SixPoint:
+              sixPointMethod(subsample1, subsample2, solutions);
               break;
           case CV_SevenPoint:
               sevenPointMethod(subsample1, subsample2, solutions);
