@@ -10,6 +10,44 @@ using namespace std;
 using namespace cv;
 
 /// <summary>
+/// Reconstruct a spherical motion fundamental matrix from its vectorized equivalent
+/// </summary>
+/// <param name="f">Vectorized version of the fundamental matrix</param>
+/// <returns>Reconstructed fundamental matrix</returns>
+Mat reconstructFundamentalFromVector(const Vec6f& f) {
+   Mat F = (Mat_<float>(3, 3) << 
+      f(0), f(1), f(2),
+      f(1), -f(0), f(3),
+      f(4), f(5), 0);
+   return F;
+}
+
+/// <summary>
+/// Construct design matrix for linear system resulting from the epipolar constraint
+/// for spherical camera motion and no radial distortion.
+/// </summary>
+/// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
+/// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
+/// <returns>Design matrix</returns>
+Mat getDesignMatrixFromPoints(const Mat& points1, const Mat& points2) {
+   size_t num_correspondences = points1.rows;
+   Mat A(num_correspondences, 6, CV_32F);
+   Mat x1 = points1.col(0);
+   Mat y1 = points1.col(1);
+   Mat x2 = points2.col(0);
+   Mat y2 = points2.col(1);
+
+   A.col(0) = x1.mul(x2) - y1.mul(y2);
+   A.col(1) = x1.mul(y2) + y1.mul(x2);
+   x2.copyTo(A.col(2));
+   y2.copyTo(A.col(3));
+   x1.copyTo(A.col(4));
+   y1.copyTo(A.col(5));
+
+   return A;
+}
+
+/// <summary>
 /// Estimate the fundamental matrix between two images using four point correspondences.
 /// </summary>
 /// <param name="points1">List of four points in the first image</param>
@@ -19,14 +57,7 @@ void fourPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& soluti
    // TODO: input validation
 
    // Set up system of linear equations based on the epipolar constraint
-   size_t num_correspondences = points1.rows;
-   Mat A(num_correspondences, 6, CV_32F);
-   A.col(0) = points1.col(0).mul(points2.col(0)) - points1.col(1).mul(points2.col(1));
-   A.col(1) = points1.col(0).mul(points2.col(1)) + points1.col(1).mul(points2.col(0));
-   points2.col(0).copyTo(A.col(2));
-   points2.col(1).copyTo(A.col(3));
-   points1.col(0).copyTo(A.col(4));
-   points1.col(1).copyTo(A.col(5));
+   Mat A = getDesignMatrixFromPoints(points1, points2);
 
    // Find a basis for the nullspace (and the vectorized fundamental matrix, Fv)
    SVD svd(A, SVD::FULL_UV);  // FULL_UV flag needed to get nullspace basis vectors
@@ -36,14 +67,9 @@ void fourPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& soluti
    // where x is scalar determining the relative proportion of each nullspace vector.
    Vec6f f1 = svd.vt.row(4); // first nullspace basis vector
    Vec6f f2 = svd.vt.row(5); // second nullspace basis vector
-
    vector<Mat> Fmats(2);   // fundamental matrices generated from the basis vectors
-   Fmats[0] = (Mat_<float>(3, 3) << f1(0), f1(1), f1(4),
-      f1(1), -f1(0), f1(5),
-      f1(2), f1(3), 0);
-   Fmats[1] = (Mat_<float>(3, 3) << f2(0), f2(1), f2(4),
-      f2(1), -f2(0), f2(5),
-      f2(2), f2(3), 0);
+   Fmats[0] = reconstructFundamentalFromVector(f1).t();
+   Fmats[1] = reconstructFundamentalFromVector(f2).t();
 
    // The fundamental matrix must have a zero determinant.
    // Set up a cubic equation based on this to find x.
@@ -94,7 +120,7 @@ void sixPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutio
    // Construct the design matrices for the equation: (lambda*C1 + C2)f = 0
    // where f is the vectorized fundamental matrix and lambda is the radial distortion
    size_t num_correspondences = points1.rows;
-   Mat C1(num_correspondences, 6, CV_32F), C2(num_correspondences, 6, CV_32F);
+   Mat C1(num_correspondences, 6, CV_32F);
 
    // Extract x-coords, y-coords, and squared lengths for each set of points
    Mat x1 = points1.col(0);
@@ -114,12 +140,7 @@ void sixPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutio
 
    // Construct C2
    // Note that C2 is the same design matrix that the 4-point method uses.
-   C2.col(0) = x1.mul(x2) - y1.mul(y2);
-   C2.col(1) = x1.mul(y2) + y1.mul(x2);
-   x2.copyTo(C2.col(2));
-   y2.copyTo(C2.col(3));
-   x1.copyTo(C2.col(4));
-   y1.copyTo(C2.col(5));
+   Mat C2 = getDesignMatrixFromPoints(points1, points2);
 
    // Solve the generalized eigenvalue problem
    Eigen::MatrixXf C1_eigen, C2_eigen;
@@ -127,21 +148,16 @@ void sixPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutio
    cv2eigen(C2, C2_eigen);
    Eigen::GeneralizedEigenSolver<Eigen::MatrixXf> esolver;
    esolver.compute(C2_eigen, C1_eigen);
-   //cout << "E-vals: " << endl << esolver.eigenvalues() << endl;
-   //cout << "E-vecs: " << endl << esolver.eigenvectors() << endl;
 
    // The real eigenvalues are potential solutions for lambda
    for (int i = 0; i < esolver.eigenvalues().size(); i++)
    {
       if (esolver.eigenvalues()(i).imag() == 0) {
          float lambda = esolver.eigenvalues()(i).real();
-         Eigen::VectorXf f = esolver.eigenvectors().col(i).real();
-         Eigen::Matrix3f F;
-         F << f(0), f(1), f(2),
-            f(1), -f(0), f(3),
-            f(4), f(5), 0;
-         Mat solution;
-         eigen2cv(F, solution);
+         Eigen::VectorXf f_eigen = esolver.eigenvectors().col(i).real();
+         Vec6f f;
+         eigen2cv(f_eigen, f);
+         Mat solution = reconstructFundamentalFromVector(f);
          solutions.push_back(solution);
       }
    }

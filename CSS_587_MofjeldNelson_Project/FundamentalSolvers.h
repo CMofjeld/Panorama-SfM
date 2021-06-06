@@ -7,7 +7,7 @@ using namespace std;
 
 enum SolverType
 {
-    Unknown,
+    //Unknown,
     FourPoint,
     SixPoint,
     CV_SevenPoint,
@@ -24,6 +24,22 @@ const CustomSolver FourPointSolver = { FourPoint, 4 };
 const CustomSolver SixPointSolver = { SixPoint, 6 };
 const CustomSolver SevenPointSolver = { CV_SevenPoint, 7 };
 const CustomSolver EightPointSolver = { CV_EightPoint, 8 };
+
+/// <summary>
+/// Reconstruct a spherical motion fundamental matrix from its vectorized equivalent
+/// </summary>
+/// <param name="f">Vectorized version of the fundamental matrix</param>
+/// <returns>Reconstructed fundamental matrix</returns>
+Mat reconstructFundamentalFromVector(const Vec6f& f);
+
+/// <summary>
+/// Construct design matrix for linear system resulting from the epipolar constraint
+/// for spherical camera motion.
+/// </summary>
+/// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
+/// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
+/// <returns>Design matrix</returns>
+Mat getDesignMatrixFromPoints(const Mat& points1, const Mat& points2);
 
 /// <summary>
 /// Estimate the fundamental matrix between two images using four point correspondences.
