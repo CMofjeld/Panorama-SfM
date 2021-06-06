@@ -425,10 +425,12 @@ void runNoiseTrials(int numOfTrialsPerLevel)
 
     for (int noiseLevelIndex = 0; noiseLevelIndex < numOfLevels; noiseLevelIndex++)
     {
+        printf("Running trails for noise level: %f\n", noiseLevels[noiseLevelIndex]);
         vector<TestResult> results;
         string resultFilePath = resultDir + "/noise_trial_" + noiseLevelNames[noiseLevelIndex] + ".csv";
         for (int trialIndex = 0; trialIndex < numOfTrialsPerLevel; trialIndex++)
         {
+            printf("   Running noise level %f, trial #: %i\n", noiseLevels[noiseLevelIndex], trialIndex);
             RNG rng((noiseLevelIndex * numOfTrialsPerLevel) + trialIndex);
 
             // First generate all of our 3D points
@@ -473,6 +475,7 @@ void runZeroNoiseTrials(int numOfTrials)
 
     for (int i = 0; i < numOfTrials; i++)
     {
+        printf("Running zero noise trial #: %i\n", i);
         RNG rng(i);
 
         // First generate all of our 3D points

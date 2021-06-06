@@ -5,7 +5,10 @@
 * 
 * Description:
 * Entry method for the main application. Starts the trials for testing the
-* different solvers
+* different solvers.
+* 
+* To run the application, the application assumes that the configuration steps as mentioned
+* on the project's github page have been followed: https://github.com/CMofjeld/Panorama-SfM
 */
 
 #include <opencv2/core.hpp>
@@ -24,13 +27,10 @@ using namespace std;
 /// Application entry point. Starts the application test trials - calculate a fundmental matrix using each solver, then compares the results
 /// against synthetic data
 /// </summary>
-/// <returns></returns>
-int main(int argc, char* argv[])
+void main(int argc, char* argv[])
 {
-    const int NUM_ZERO_NOISE_TRIAL = 10000;
-    const int NUM_TRIALS_PER_NOISE_LEVEL = 1000;
+    const int NUM_ZERO_NOISE_TRIAL = 1000;
+    const int NUM_TRIALS_PER_NOISE_LEVEL = 500;
 
     runAllTrials(NUM_ZERO_NOISE_TRIAL, NUM_TRIALS_PER_NOISE_LEVEL);
-
-    return 0;
 }
