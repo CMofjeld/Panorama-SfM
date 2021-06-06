@@ -30,6 +30,9 @@ Mat reconstructFundamentalFromVector(const Vec6f& f) {
 /// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
 /// <returns>Design matrix</returns>
 Mat getDesignMatrixFromPoints(const Mat& points1, const Mat& points2) {
+   // Input validation
+   CV_Assert(matsAreSameSize(points1, points2));
+
    size_t num_correspondences = points1.rows;
    Mat A(num_correspondences, 6, CV_32F);
    Mat x1 = points1.col(0);
@@ -48,13 +51,26 @@ Mat getDesignMatrixFromPoints(const Mat& points1, const Mat& points2) {
 }
 
 /// <summary>
+/// Construct design matrix for linear system resulting from the epipolar constraint
+/// for spherical camera motion and no radial distortion.
+/// </summary>
+/// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
+/// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
+/// <returns>Design matrix</returns>
+bool matsAreSameSize(const Mat& mat1, const Mat& mat2) {
+   return ((mat1.rows == mat2.rows) && (mat1.cols == mat2.cols));
+}
+
+/// <summary>
 /// Estimate the fundamental matrix between two images using four point correspondences.
 /// </summary>
 /// <param name="points1">List of four points in the first image</param>
 /// <param name="points2">List of four points in the second image</param>
 /// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
 void fourPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions) {
-   // TODO: input validation
+   // Input validation
+   CV_Assert(points1.rows >= 4);
+   CV_Assert(matsAreSameSize(points1, points2));
 
    // Set up system of linear equations based on the epipolar constraint
    Mat A = getDesignMatrixFromPoints(points1, points2);
@@ -115,7 +131,9 @@ void fourPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& soluti
 /// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
 /// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
 void sixPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions) {
-   // TODO: input validation
+   // Input validation
+   CV_Assert(points1.rows >= 6);
+   CV_Assert(matsAreSameSize(points1, points2));
 
    // Construct the design matrices for the equation: (lambda*C1 + C2)f = 0
    // where f is the vectorized fundamental matrix and lambda is the radial distortion
@@ -170,6 +188,10 @@ void sixPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutio
 /// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
 /// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
 void sevenPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions) {
+   // Input validation
+   CV_Assert(points1.rows >= 7);
+   CV_Assert(matsAreSameSize(points1, points2));
+
    Mat solver_results = findFundamentalMat(points1, points2, FM_7POINT);
    solver_results.convertTo(solver_results, CV_32F);
    for (size_t i = 0; i < solver_results.rows; i += 3)
@@ -186,6 +208,10 @@ void sevenPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solut
 /// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
 /// <param name="solutions">[Output] Possible solutions for the fundamental matrix</param>
 void eightPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solutions) {
+   // Input validation
+   CV_Assert(points1.rows >= 8);
+   CV_Assert(matsAreSameSize(points1, points2));
+
     Mat solver_results = findFundamentalMat(points1, points2, FM_8POINT);
     solver_results.convertTo(solver_results, CV_32F);
     for (size_t i = 0; i < solver_results.rows; i += 3)
@@ -206,7 +232,10 @@ void eightPointMethod(const Mat& points1, const Mat& points2, vector<Mat>& solut
 /// <returns>Estimated fundamental matrix</returns>
 Mat estimateFundamentalMatrix(CustomSolver solver, const Mat& points1, const Mat& points2, int iterations, float threshold)
 {
-   // TODO: input validation
+   // Input validation
+   CV_Assert(matsAreSameSize(points1, points2));
+
+   // Setup
    Mat bestEstimate;       // Best estimate for fundamental matrix
    int bestInliers = -1;   // Number of inliers for best estimate
    static RNG rng(12345);  // Random number generator for selecting random subsets
@@ -273,6 +302,9 @@ Mat estimateFundamentalMatrix(CustomSolver solver, const Mat& points1, const Mat
 /// <param name="threshold">Error threshold for inlier/outlier calculation</param>
 /// <returns>Number of inliers</returns>
 int countInliersFundamental(const Mat& F, const Mat& points1, const Mat& points2, float threshold) {
+   // Input validation
+   CV_Assert(matsAreSameSize(points1, points2));
+
    // Get epipolar lines
    Mat epipolarLines = points2 * F;
 
