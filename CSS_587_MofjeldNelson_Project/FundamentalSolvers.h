@@ -1,3 +1,12 @@
+/*
+* CSS 587 - Advance Computer Vision
+* Spring 2021
+* Carl Mofjeld, Drew Nelson
+*
+* Description:
+* Contains the methods compute the fundamental matrix using different solvers
+*/
+
 #pragma once
 #include <opencv2/core.hpp>
 #include <vector>
@@ -5,25 +14,34 @@
 using namespace cv;
 using namespace std;
 
-enum SolverType
+/// <summary>
+/// Types of enum types we'll support in our application. Currently, our 
+/// self-implementations include the four-point method and six-point method. 
+/// Adding the OpenCV seven point and eight point methods to use for comparisons
+/// </summary>
+enum class SolverType
 {
-    //Unknown,
     FourPoint,
     SixPoint,
     CV_SevenPoint,
     CV_EightPoint
 };
 
+/// <summary>
+/// Utility structure to help encapsulate a solver type and the number of 
+/// point correspondences required for the solver to work.
+/// </summary>
 struct CustomSolver
 {
     SolverType solverType;
     int requiredNumOfPoints;
 };
 
-const CustomSolver FourPointSolver = { FourPoint, 4 };
-const CustomSolver SixPointSolver = { SixPoint, 6 };
-const CustomSolver SevenPointSolver = { CV_SevenPoint, 7 };
-const CustomSolver EightPointSolver = { CV_EightPoint, 8 };
+//Supported solvers
+const CustomSolver FourPointSolver = { SolverType::FourPoint, 4 };
+const CustomSolver SixPointSolver = { SolverType::SixPoint, 6 };
+const CustomSolver SevenPointSolver = { SolverType::CV_SevenPoint, 7 };
+const CustomSolver EightPointSolver = { SolverType::CV_EightPoint, 8 };
 
 /// <summary>
 /// Estimate the fundamental matrix between two images using four point correspondences.

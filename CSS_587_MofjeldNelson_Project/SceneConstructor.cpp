@@ -1,3 +1,15 @@
+/*
+* CSS 587 - Advance Computer Vision
+* Spring 2021
+* Carl Mofjeld, Drew Nelson
+*
+* Description:
+* Methods to help render a 3D scene on the screen
+*
+* NOTE: Source not in use as we were not able to get OpenCV's reconstruct methods
+* to work
+*/
+
 #define CERES_FOUND 1
 
 #include <opencv2/sfm.hpp>

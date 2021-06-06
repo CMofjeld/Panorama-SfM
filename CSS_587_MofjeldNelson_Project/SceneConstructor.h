@@ -1,9 +1,3 @@
-#pragma once
-
-#include <opencv2/sfm.hpp>
-#include <opencv2/viz.hpp>
-#include <opencv2/calib3d.hpp>
-#include <opencv2/core.hpp>
 /*
 * CSS 587 - Advance Computer Vision
 * Spring 2021
@@ -11,15 +5,22 @@
 *
 * Description:
 * Methods to help render a 3D scene on the screen
+* 
+* NOTE: Source not in use as we were not able to get OpenCV's reconstruct methods
+* to work
 */
 
-#include <iostream>
+#pragma once
 
 #include <iostream>
 #include <fstream>
 #include <cstdint>
 #include <filesystem>
 
+#include <opencv2/sfm.hpp>
+#include <opencv2/viz.hpp>
+#include <opencv2/calib3d.hpp>
+#include <opencv2/core.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>

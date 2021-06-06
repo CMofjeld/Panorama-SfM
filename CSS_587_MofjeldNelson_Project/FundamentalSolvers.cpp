@@ -1,3 +1,12 @@
+/*
+* CSS 587 - Advance Computer Vision
+* Spring 2021
+* Carl Mofjeld, Drew Nelson
+*
+* Description:
+* Contains the methods compute the fundamental matrix using different solvers
+*/
+
 #include <Eigen/Eigenvalues>
 #include <opencv2/core/eigen.hpp>
 #include "FundamentalSolvers.h"
@@ -29,6 +38,17 @@ Mat reconstructFundamentalFromVector(const Vec6f& f) {
 /// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
 /// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
 /// <returns>Design matrix</returns>
+bool matsAreSameSize(const Mat& mat1, const Mat& mat2) {
+    return ((mat1.rows == mat2.rows) && (mat1.cols == mat2.cols));
+}
+
+/// <summary>
+/// Construct design matrix for linear system resulting from the epipolar constraint
+/// for spherical camera motion and no radial distortion.
+/// </summary>
+/// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
+/// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
+/// <returns>Design matrix</returns>
 Mat getDesignMatrixFromPoints(const Mat& points1, const Mat& points2) {
    // Input validation
    CV_Assert(matsAreSameSize(points1, points2));
@@ -48,17 +68,6 @@ Mat getDesignMatrixFromPoints(const Mat& points1, const Mat& points2) {
    y1.copyTo(A.col(5));
 
    return A;
-}
-
-/// <summary>
-/// Construct design matrix for linear system resulting from the epipolar constraint
-/// for spherical camera motion and no radial distortion.
-/// </summary>
-/// <param name="points1">Nx3 matrix of homogeneous points in the first image</param>
-/// <param name="points2">Nx3 matrix of homogeneous points in the second image</param>
-/// <returns>Design matrix</returns>
-bool matsAreSameSize(const Mat& mat1, const Mat& mat2) {
-   return ((mat1.rows == mat2.rows) && (mat1.cols == mat2.cols));
 }
 
 /// <summary>
@@ -265,16 +274,16 @@ Mat estimateFundamentalMatrix(CustomSolver solver, const Mat& points1, const Mat
 
       switch (solver.solverType)
       {
-          case FourPoint:
+          case SolverType::FourPoint:
               fourPointMethod(subsample1, subsample2, solutions);
               break;
-          case SixPoint:
+          case SolverType::SixPoint:
               sixPointMethod(subsample1, subsample2, solutions);
               break;
-          case CV_SevenPoint:
+          case SolverType::CV_SevenPoint:
               sevenPointMethod(subsample1, subsample2, solutions);
               break;
-          case CV_EightPoint:
+          case SolverType::CV_EightPoint:
               eightPointMethod(subsample1, subsample2, solutions);
               break;
       }

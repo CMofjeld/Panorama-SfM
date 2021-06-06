@@ -1,3 +1,13 @@
+/*
+* CSS 587 - Advance Computer Vision
+* Spring 2021
+* Carl Mofjeld, Drew Nelson
+*
+* Description:
+* Contains the methods used to help test the fundamental solvers. The methods here
+* attempt to follow the methods trials setup as described in the paper
+*/
+
 #include <iostream>
 #include <limits>
 #include <stdio.h>
@@ -6,21 +16,10 @@
 #include <random>
 #include <opencv2/calib3d.hpp>
 #include "FundamentalTests.h"
-#include "FundamentalSolvers.h"
+
 using namespace cv;
 
-// #define LOG_DETAILS
-
-/// <summary>
-/// Utility structure to help encapsulate test information
-/// </summary>
-struct TestResult
-{
-    SolverType solverType;
-    long solverTime; // in microseconds
-    double normOfError;
-    int iterationIndex;
-};
+// #define LOG_DETAILS //Flag used to help log details of the trials to help debug issues
 
 /// <summary>
 /// Utility method to create a print friendly representation of the solver type
@@ -31,154 +30,16 @@ string solverTypeToString(SolverType solverType)
 {
     switch (solverType)
     {
-        case FourPoint:
+        case SolverType::FourPoint:
             return "FourPoint";
-        case SixPoint:
+        case SolverType::SixPoint:
             return "SixPoint";
-        case CV_SevenPoint:
+        case SolverType::CV_SevenPoint:
             return "CV_SevenPoint";
-        case CV_EightPoint:
+        case SolverType::CV_EightPoint:
             return "CV_EightPoint";
     }
     return "Unknown";
-}
-
-/// <summary>
-/// Evaluate the accuracy of fourPointMethod().
-/// </summary>
-void testFourPoint() {
-   // Generate random points
-   const int NUM_POINTS = 4;        // Number of random points to generate
-   const float MIN_DEPTH = 6.f;     // Minimum depth from the first camera
-   const float MAX_DEPTH = 10.f;    // Maximum depth from the first camera
-   const float MAX_X = 20.f;        // Maximum displacement in x-direction
-   const float MAX_Y = 20.f;        // Maximum displacement in y-direction
-
-   vector<Point3f> points3d;        // List of randomly generated 3D points
-   getRandom3Dpoints(points3d, NUM_POINTS, -MAX_X, MAX_X, -MAX_Y, MAX_Y, MIN_DEPTH, MAX_DEPTH);
-   cout << "Random 3D points:" << endl;
-   for (auto& point : points3d) cout << point << endl;
-   cout << endl;
-
-   // Define arbitrary camera ground truths.
-   // Both cameras lie on the unit sphere and have zero skew,
-   // unit aspect ratio, and centered principal points.
-   // The pose of the first camera is used as the origin of the
-   // global coordinate frame.
-   const float FOCAL_LEN = 600.f;   // Ground truth focal length
-   const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10� rotation
-
-   Mat K = Mat::eye(Size(3, 3), CV_32FC1);  // Camera intrinsics
-   K.at<float>(0, 0) = FOCAL_LEN;
-   K.at<float>(1, 1) = FOCAL_LEN;
-
-   Mat R; // Rotation matrix
-   getRandom3DRotationMat(R, MAX_ROTATION, MAX_ROTATION, MAX_ROTATION);
-   Mat rvec;   // Rotation vector
-   Rodrigues(R, rvec);
-   Mat t; // Translation vector
-   R.col(2).copyTo(t);
-   t.at<float>(2, 0) -= 1;
-
-   // Project points to both cameras
-   vector<Point2f> projectedPoints1, projectedPoints2;
-   Mat zeroVec = Mat::zeros(3, 1, DataType<float>::type);
-   projectPoints(points3d, zeroVec, zeroVec, K, noArray(), projectedPoints1);
-   projectPoints(points3d, rvec, t, K, noArray(), projectedPoints2);
-   cout << "Projected points 1:" << endl;
-   for (auto& point : projectedPoints1) cout << point << endl;
-   cout << endl;
-   cout << "Projected points 2:" << endl;
-   for (auto& point : projectedPoints2) cout << point << endl;
-   cout << endl;
-
-   // Get four point estimations
-   vector<Mat> solutions;
-   Mat homogeneousP1, homogeneousP2;
-   hconcat(Mat(projectedPoints1.size(), 2, CV_32F, projectedPoints1.data()), Mat::ones(projectedPoints1.size(), 1, CV_32F), homogeneousP1);
-   hconcat(Mat(projectedPoints2.size(), 2, CV_32F, projectedPoints2.data()), Mat::ones(projectedPoints2.size(), 1, CV_32F), homogeneousP2);
-   fourPointMethod(homogeneousP1, homogeneousP2, solutions);
-
-   // Calculate ground truth fundamental matrix
-   Mat F, bestEstimate;
-   fundamentalFromKRT(F, K, K, R, t);
-   F = F / norm(F);
-   cout << "Ground truth Fundamental:" << endl;
-   cout << F << endl << endl;
-
-   // Find the estimated solution with the lowest error
-   double bestError = DBL_MAX;
-   for (auto& solution : solutions) {
-      double curError = norm(F - solution);
-      if (curError < bestError) {
-         bestEstimate = solution;
-         bestError = curError;
-      }
-   }
-   cout << "Estimated Fundamental:" << endl;
-   cout << bestEstimate << endl << endl;
-   cout << "Frobenius norm of error:" << endl;
-   cout << bestError << endl << endl;
-}
-
-/// <summary>
-/// Evaluate the performance of estimateFundamentalMatrix().
-/// </summary>
-void testEstimateFundamentalMatrix() {
-   // Generate random points
-   const int NUM_POINTS = 50;     // Number of random points to generate
-   const float MIN_DEPTH = 6.f;     // Minimum depth from the first camera
-   const float MAX_DEPTH = 10.f;    // Maximum depth from the first camera
-   const float MAX_X = 20.f;        // Maximum displacement in x-direction
-   const float MAX_Y = 20.f;        // Maximum displacement in y-direction
-
-   vector<Point3f> points3d;        // List of randomly generated 3D points
-   getRandom3Dpoints(points3d, NUM_POINTS, -MAX_X, MAX_X, -MAX_Y, MAX_Y, MIN_DEPTH, MAX_DEPTH);
-
-   // Define arbitrary camera ground truths.
-   // Both cameras lie on the unit sphere and have zero skew,
-   // unit aspect ratio, and centered principal points.
-   // The pose of the first camera is used as the origin of the
-   // global coordinate frame.
-   const float FOCAL_LEN = 600.f;   // Ground truth focal length
-   const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10� rotation
-
-   Mat K = Mat::eye(Size(3, 3), CV_32FC1);  // Camera intrinsics
-   K.at<float>(0, 0) = FOCAL_LEN;
-   K.at<float>(1, 1) = FOCAL_LEN;
-
-   Mat R; // Rotation matrix
-   getRandom3DRotationMat(R, MAX_ROTATION, MAX_ROTATION, MAX_ROTATION);
-   Mat rvec;   // Rotation vector
-   Rodrigues(R, rvec);
-   Mat t; // Translation vector
-   R.col(2).copyTo(t);
-   t.at<float>(2, 0) -= 1;
-
-   // Project points to both cameras
-   vector<Point2f> projectedPoints1, projectedPoints2;
-   Mat zeroVec = Mat::zeros(3, 1, DataType<float>::type);
-   projectPoints(points3d, zeroVec, zeroVec, K, noArray(), projectedPoints1);
-   projectPoints(points3d, rvec, t, K, noArray(), projectedPoints2);
-
-   // Get four point estimations
-   Mat homogeneousP1, homogeneousP2;
-   hconcat(Mat(projectedPoints1.size(), 2, CV_32F, projectedPoints1.data()), Mat::ones(projectedPoints1.size(), 1, CV_32F), homogeneousP1);
-   hconcat(Mat(projectedPoints2.size(), 2, CV_32F, projectedPoints2.data()), Mat::ones(projectedPoints2.size(), 1, CV_32F), homogeneousP2);
-   Mat bestEstimate = estimateFundamentalMatrix(FourPointSolver, homogeneousP1, homogeneousP2);
-
-   // Calculate ground truth fundamental matrix
-   Mat F;
-   fundamentalFromKRT(F, K, K, R, t);
-   F = F / norm(F);
-   cout << "Ground truth Fundamental:" << endl;
-   cout << F << endl << endl;
-
-   // Find the estimated solution with the lowest error
-   cout << "Estimated Fundamental:" << endl;
-   cout << bestEstimate << endl << endl;
-   cout << "Frobenius norm of error:" << endl;
-   cout << norm(F - bestEstimate) << endl << endl;
 }
 
 /// <summary>
@@ -510,13 +371,13 @@ vector<TestResult> estimateFundamentals(int iterationIndex, Mat homogeneousP1, M
     vector<TestResult> results;
 
     //TODO: If we have time, we should consider moving this list elsewhere since it's being redefined for each trail attempt
-    CustomSolver solvers[] = { FourPointSolver, /*SixPointSolver, */SevenPointSolver, EightPointSolver }; 
+    CustomSolver solvers[] = { FourPointSolver, SixPointSolver, SevenPointSolver, EightPointSolver }; 
     Mat groundTruthFundamental = getNormalizedGroundTruthMatrix(intrinsicMatrix, rotationMat, translationVector);
     for (auto solver : solvers)
     {
         TestResult result;
         Mat bestEstimate;
-        double timeInMicroseconds = calculateAndTimeFundamentalMatrix(solver, homogeneousP1, homogeneousP2, bestEstimate);
+        long timeInMicroseconds = calculateAndTimeFundamentalMatrix(solver, homogeneousP1, homogeneousP2, bestEstimate);
 
         result.iterationIndex = iterationIndex;
         result.normOfError = computeNormOfError(groundTruthFundamental, bestEstimate);
@@ -528,7 +389,8 @@ vector<TestResult> estimateFundamentals(int iterationIndex, Mat homogeneousP1, M
 }
 
 /// <summary>
-/// Run both the zero-noise and noisy trials. Ensures the result directory is created before running the trials
+/// Run both the zero-noise and noisy trials using all available solvers. Results saved to 
+/// results directory locally on the disk as .csv files
 /// </summary>
 /// <param name="numOfZeroNoiseTrails">Number of zero-noise trails to run.</param>
 /// <param name="numOfTrailsPerNoiseLevel">Number of trials to run per noise level</param>
@@ -546,7 +408,8 @@ void runAllTrials(int numOfZeroNoiseTrails, int numOfTrailsPerNoiseLevel)
 }
 
 /// <summary>
-/// Run the trials that apply guassian noise
+/// Runs trials for each available solver for each gaussian level: 0, 0.01, 0.1, 0.5, 1, 2.
+/// Results are saved locally in the results directory
 /// </summary>
 /// <param name="numOfTrialsPerLevel">Number of trails to run per gaussian level</param>
 void runNoiseTrials(int numOfTrialsPerLevel)
@@ -567,7 +430,6 @@ void runNoiseTrials(int numOfTrialsPerLevel)
         for (int trialIndex = 0; trialIndex < numOfTrialsPerLevel; trialIndex++)
         {
             RNG rng((noiseLevelIndex * numOfTrialsPerLevel) + trialIndex);
-            TestResult result;
 
             // First generate all of our 3D points
             vector<Point3f> points3d = getRandom3Dpoints(NUM_OF_RANDOM_POINTS);
@@ -612,8 +474,6 @@ void runZeroNoiseTrials(int numOfTrials)
     for (int i = 0; i < numOfTrials; i++)
     {
         RNG rng(i);
-
-        TestResult result;
 
         // First generate all of our 3D points
         vector<Point3f> points3d = getRandom3Dpoints(NUM_OF_RANDOM_POINTS);

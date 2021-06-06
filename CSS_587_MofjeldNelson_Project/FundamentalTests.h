@@ -1,21 +1,33 @@
+/*
+* CSS 587 - Advance Computer Vision
+* Spring 2021
+* Carl Mofjeld, Drew Nelson
+*
+* Description:
+* Contains the methods used to help test the fundamental solvers. The methods here
+* attempt to follow the methods trials setup as described in the paper
+*/
+
 #pragma once
 #include <opencv2/core.hpp>
 #include <vector>
 #include "FileHelper.h"
+#include "FundamentalSolvers.h"
 
 using namespace cv;
 using namespace std;
 using namespace std::chrono;
 
 /// <summary>
-/// Evaluate the accuracy of fourPointMethod().
+/// Utility structure to help encapsulate test information
 /// </summary>
-void testFourPoint();
-
-/// <summary>
-/// Evaluate the performance of estimateFundamentalMatrix().
-/// </summary>
-void testEstimateFundamentalMatrix();
+struct TestResult
+{
+    SolverType solverType;
+    long solverTime; // in microseconds
+    double normOfError;
+    int iterationIndex;
+};
 
 /// <summary>
 /// Generate a set of random 3D points from a uniform distribution.
