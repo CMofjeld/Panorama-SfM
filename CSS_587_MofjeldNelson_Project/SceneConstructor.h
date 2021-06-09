@@ -43,3 +43,5 @@ bool renderScene(String windowName, vector<Vec3f> worldPoints);
 /// <param name="videoPath">Full path to the video</param>
 /// <param name="windowName">Name of the window to render the scene in</param>
 void renderSceneFromVideo(String videoPath, String windowName);
+
+void Experimenting();

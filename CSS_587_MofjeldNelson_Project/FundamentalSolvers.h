@@ -107,6 +107,20 @@ int countInliersFundamental(const Mat& F, const Mat& points1, const Mat& points2
 Mat fundamentalFromImagePair(const Mat& img1, const Mat& img2);
 
 /// <summary>
+/// Estimate the fundamental matrix between two image pairs using SIFT descriptors
+/// and the four point estimator.
+/// 
+/// NOTE: This is similar the method above, but was added to help debug the issue with reconstruction. The main difference
+/// with this method is that it returns out the point matches in each image
+/// </summary>
+/// <param name="img1">First image</param>
+/// <param name="img2">Second image</param>
+/// <param name="matches1">Points found in image 1</param>
+/// <param name="matches2">Points found in image 2</param>
+/// <returns>Estimated fundamental matrix</returns>
+Mat fundamentalFromImagePair(const Mat& img1, const Mat& img2, vector<Point2f>& matches1, vector<Point2f>& matches2);
+
+/// <summary>
 /// Decompose a Fundamental matrix into a relative rotation and translation that are
 /// consistent with outward facing spherical motion.
 /// </summary>

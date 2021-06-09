@@ -43,6 +43,52 @@ string solverTypeToString(SolverType solverType)
 }
 
 /// <summary>
+/// Evaluate the performance of estimateFundamentalMatrix().
+/// </summary>
+void SfmTesting(Mat &fundamentalMatrix, vector<Point2f> &projectedPoints1, vector<Point2f> & projectedPoints2) {
+    // Generate random points
+    const int NUM_POINTS = 50;     // Number of random points to generate
+    const float MIN_DEPTH = 6.f;     // Minimum depth from the first camera
+    const float MAX_DEPTH = 10.f;    // Maximum depth from the first camera
+    const float MAX_X = 20.f;        // Maximum displacement in x-direction
+    const float MAX_Y = 20.f;        // Maximum displacement in y-direction
+
+    vector<Point3f> points3d;        // List of randomly generated 3D points
+    getRandom3Dpoints(points3d, NUM_POINTS, -MAX_X, MAX_X, -MAX_Y, MAX_Y, MIN_DEPTH, MAX_DEPTH);
+
+    // Define arbitrary camera ground truths.
+    // Both cameras lie on the unit sphere and have zero skew,
+    // unit aspect ratio, and centered principal points.
+    // The pose of the first camera is used as the origin of the
+    // global coordinate frame.
+    const float FOCAL_LEN = 600.f;   // Ground truth focal length
+    const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10° rotation
+
+    Mat K = Mat::eye(Size(3, 3), CV_32FC1);  // Camera intrinsics
+    K.at<float>(0, 0) = FOCAL_LEN;
+    K.at<float>(1, 1) = FOCAL_LEN;
+
+    Mat R; // Rotation matrix
+    getRandom3DRotationMat(R, MAX_ROTATION, MAX_ROTATION, MAX_ROTATION);
+    Mat rvec;   // Rotation vector
+    Rodrigues(R, rvec);
+    Mat t; // Translation vector
+    R.col(2).copyTo(t);
+    t.at<float>(2, 0) -= 1;
+
+    // Project points to both cameras
+    Mat zeroVec = Mat::zeros(3, 1, DataType<float>::type);
+    projectPoints(points3d, zeroVec, zeroVec, K, noArray(), projectedPoints1);
+    projectPoints(points3d, rvec, t, K, noArray(), projectedPoints2);
+
+    // Get four point estimations
+    Mat homogeneousP1, homogeneousP2;
+    hconcat(Mat(projectedPoints1.size(), 2, CV_32F, projectedPoints1.data()), Mat::ones(projectedPoints1.size(), 1, CV_32F), homogeneousP1);
+    hconcat(Mat(projectedPoints2.size(), 2, CV_32F, projectedPoints2.data()), Mat::ones(projectedPoints2.size(), 1, CV_32F), homogeneousP2);
+    //fundamentalMatrix = estimateFundamentalMatrix(homogeneousP1, homogeneousP2);
+}
+
+/// <summary>
 /// Generate a set of random 3D points from a uniform distribution.
 /// </summary>
 /// <param name="points3d">[Output] Set of random 3D points</param>
@@ -122,7 +168,7 @@ void getRandom3DRotationMat(Mat& rotationMat, float xRotMax, float yRotMax, floa
 /// <param name="rotationMat">[Output] Rotation matrix</param>
 void getRandom3DRotationMat(Mat& rotationMat) {
     static RNG rng(12345);
-    const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10ï¿½ rotation
+    const float MAX_ROTATION = 10.f * CV_PI / 180.f; // Maximum 10? rotation
     float x_angle = rng.uniform(-MAX_ROTATION, MAX_ROTATION);
     float y_angle = rng.uniform(-MAX_ROTATION, MAX_ROTATION);
     float z_angle = rng.uniform(-MAX_ROTATION, MAX_ROTATION);

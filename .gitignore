@@ -387,9 +387,8 @@ FodyWeavers.xsd
 .idea/
 *.sln.iml
 
-!CSS_587_MofjeldNelson_Project/bin
-!CSS_587_MofjeldNelson_Project/includes
-!CSS_587_MofjeldNelson_Project/libs
+!CSS_587_MofjeldNelson_Project/includes/eigen-3.4-rc1/Eigen/src/Core/
+!CSS_587_MofjeldNelson_Project/includes/eigen-3.4-rc1/scripts/buildtests.in
 CSS_587_MofjeldNelson_Project/video_dump
 CSS_587_MofjeldNelson_Project/results
 CSS_587_MofjeldNelson_Project/*.csv

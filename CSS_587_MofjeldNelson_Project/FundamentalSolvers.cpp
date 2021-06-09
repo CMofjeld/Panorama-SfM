@@ -369,6 +369,52 @@ Mat fundamentalFromImagePair(const Mat& img1, const Mat& img2) {
 }
 
 /// <summary>
+/// Estimate the fundamental matrix between two image pairs using SIFT descriptors
+/// and the four point estimator.
+/// 
+/// NOTE: This is similar the method above, but was added to help debug the issue with reconstruction. The main difference
+/// with this method is that it returns out the point matches in each image
+/// </summary>
+/// <param name="img1">First image</param>
+/// <param name="img2">Second image</param>
+/// <param name="matches1">Points found in image 1</param>
+/// <param name="matches2">Points found in image 2</param>
+/// <returns>Estimated fundamental matrix</returns>
+Mat fundamentalFromImagePair(const Mat& img1, const Mat& img2, vector<Point2f> &matches1, vector<Point2f> &matches2) {
+    // Create a SIFT detector/descriptor
+    Ptr<SIFT> detector = SIFT::create();
+
+    // Use the detectAndCompute method of the detector to obtain both keypoints
+    // and descriptors from both input images. 
+    vector<KeyPoint> keypoints1, keypoints2;
+    Mat descriptors1, descriptors2;
+    detector->detectAndCompute(img1, Mat(), keypoints1, descriptors1);
+    detector->detectAndCompute(img2, Mat(), keypoints2, descriptors2);
+
+    // Create a brute-force matcher
+    Ptr<BFMatcher> matcher = BFMatcher::create();
+
+    // Use the brute-force matcher to compute matches between the
+    // keypoints/descriptors in the two images.
+    vector<DMatch> matches;
+    matcher->match(descriptors1, descriptors2, matches);
+
+    // Create vectors of matched points
+    for (auto& match : matches) {
+        matches1.push_back(keypoints1[match.queryIdx].pt);
+        matches2.push_back(keypoints2[match.trainIdx].pt);
+    }
+
+    // Convert to homogeneous matrices
+    Mat homogeneousP1, homogeneousP2;
+    hconcat(Mat(matches1.size(), 2, CV_32F, matches1.data()), Mat::ones(matches1.size(), 1, CV_32F), homogeneousP1);
+    hconcat(Mat(matches2.size(), 2, CV_32F, matches2.data()), Mat::ones(matches2.size(), 1, CV_32F), homogeneousP2);
+
+    // Estimate the fundamental matrix
+    return estimateFundamentalMatrix(FourPointSolver, homogeneousP1, homogeneousP2);
+}
+
+/// <summary>
 /// Decompose a Fundamental matrix into a relative rotation and translation that are
 /// consistent with outward facing spherical motion.
 /// </summary>

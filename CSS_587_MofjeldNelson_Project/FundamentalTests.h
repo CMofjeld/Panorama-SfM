@@ -30,6 +30,11 @@ struct TestResult
 };
 
 /// <summary>
+/// Evaluate the performance of estimateFundamentalMatrix().
+/// </summary>
+void SfmTesting(Mat& fundamentalMatrix, vector<Point2f>& projectedPoints1, vector<Point2f>& projectedPoints2);
+
+/// <summary>
 /// Generate a set of random 3D points from a uniform distribution.
 /// </summary>
 /// <param name="points3d">[Output] Set of random 3D points</param>
