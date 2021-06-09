@@ -8,10 +8,4 @@ This work was done as part of the final project in the CSS 587 - Advance Topics 
 # Dependencies and Setup
 This project relies on the the SfM and Viz modules from OpenCV. As a result, OpenCV the OpenCV contribution models we're build using CMAKE targeting VS 2019. Additionally, the SfM module, required the libraries Eigen, GLog, GFlags, and Ceres Solver. As a result, these libraries were built using CMAKE as well. 
 
-Unfortunately, due to git's size restriction, we were unable to provide all of the dependencies in the repository. To build and run the project, you must download the [dependencies files](https://drive.google.com/file/d/1FtKI8EJpFOQ8zwwsl6AM2_yBAWfsF1n-/view?usp=sharing) and unpackage them into the CSS_587_MofjeldNelson_Project directory. After unpacking the file, you should have the following folders under your CSS_587_MofjeldNelson_Project folder:
-* bin
-* includes
-* Input
-* libs
- 
-Lastly, you'll need to add the full path of the project's bin directory (i.e. D:\UWB\CSS_587\Panorama-SfM\CSS_587_MofjeldNelson_Project\bin) to your PC's PATH variable.
+All of the dependencies needed for this project are already included with the project. The only step required is to add the project's bin to your PC's PATH environment variable (e.g. D:\UWB\CSS_587\Panorama-SfM\CSS_587_MofjeldNelson_Project\bin).
