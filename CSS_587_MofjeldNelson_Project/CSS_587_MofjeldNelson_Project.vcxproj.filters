@@ -15,9 +15,4 @@
     <ClInclude Include="VideoHelper.h" />
     <ClInclude Include="FileHelper.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="DependencyChecker.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
 </Project>
